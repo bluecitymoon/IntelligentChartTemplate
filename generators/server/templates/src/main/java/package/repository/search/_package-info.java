@@ -1,4 +1,4 @@
 /**
- * Spring Data Elasticsearch repositories.
+ * Spring Data ElasticSearch repositories.
  */
 package <%=packageName%>.repository.search;

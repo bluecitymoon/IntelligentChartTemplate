@@ -104,6 +104,7 @@ function askForTestOpts() {
             {name: 'Gatling', value: 'gatling'},
             {name: 'Cucumber', value: 'cucumber'}
         );
+        defaultChoice = ['gatling'];
     }
     if (!this.skipClient) {
         // all client side test frameworks should be added here
@@ -117,7 +118,7 @@ function askForTestOpts() {
         type: 'checkbox',
         name: 'testFrameworks',
         message: function (response) {
-            return getNumberedQuestion('Besides JUnit and Karma, which testing frameworks would you like to use?', true);
+            return getNumberedQuestion('Which testing frameworks would you like to use?', true);
         },
         choices: choices,
         default: defaultChoice
@@ -127,38 +128,15 @@ function askForTestOpts() {
     }.bind(this));
 }
 
-function askForMoreModules() {
-    if (this.existingProject) {
-        return;
-    }
-
-    var done = this.async();
-    var generator = this;
-    this.prompt({
-        type: 'confirm',
-        name: 'installModules',
-        message: function(response) {
-            return generator.getNumberedQuestion('Would you like to install other generators from the JHipster Marketplace?', true);
-        },
-        default: false
-    }).then(function (prompt) {
-        if (prompt.installModules) {
-            askModulesToBeInstalled(done, generator);
-        } else {
-            done();
-        }
-    }.bind(this));
-}
-
 function askModulesToBeInstalled(done, generator) {
-    generator.httpsGet('https://api.npms.io/v2/search?q=keywords:jhipster-module&from=0&size=50',
+    generator.httpGet('http://npmsearch.com/query?fields=name,description,author,version&q=keywords:jhipster-module&start=0&size=50',
         function(body) {
             var moduleResponse = JSON.parse(body);
             var choices = [];
             moduleResponse.results.forEach(function (modDef) {
                 choices.push({
-                    value: { name:modDef.package.name, version:modDef.package.version},
-                    name: `(${modDef.package.name}-${modDef.package.version}) ${modDef.package.description} [${modDef.package.author.name}]`
+                    value: { name:modDef.name, version:modDef.version},
+                    name: '(' + modDef.name + '-' + modDef.version + ') '+ modDef.description + ' [' + modDef.author + ']'
                 });
             });
             if (choices.length > 0) {
@@ -172,7 +150,7 @@ function askModulesToBeInstalled(done, generator) {
                     // [ {name: [moduleName], version:[version]}, ...]
                     generator.otherModules = [];
                     prompt.otherModules.forEach(function(module) {
-                        generator.otherModules.push({name:module.name, version:module.version});
+                        generator.otherModules.push({name:module.name[0], version:module.version[0]});
                     });
                     generator.configOptions.otherModules = this.otherModules;
                     done();
@@ -182,7 +160,31 @@ function askModulesToBeInstalled(done, generator) {
             }
         },
         function (error) {
-            generator.warning(`Unable to contact server to fetch additional modules: ${ error.message }`);
+            generator.warning(`Unable to contact server to fetch additional modules: ${ error.message }'`);
             done();
         });
 }
+
+function askForMoreModules() {
+    if (this.existingProject) {
+        return;
+    }
+
+    var done = this.async();
+    var generator = this;
+    this.prompt({
+        type: 'confirm',
+        name: 'installModules',
+        message: function(response) {
+            return generator.getNumberedQuestion('Would you like to install other generators from the JHipster Market Place?', true);
+        },
+        default: false
+    }).then(function (prompt) {
+        if (prompt.installModules) {
+            askModulesToBeInstalled(done, generator);
+        } else {
+            done();
+        }
+    }.bind(this));
+}
+

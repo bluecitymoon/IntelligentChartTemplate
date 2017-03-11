@@ -7,10 +7,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 public class JWTConfigurer extends SecurityConfigurerAdapter<DefaultSecurityFilterChain, HttpSecurity> {
 
-    public static final String AUTHORIZATION_HEADER = "Authorization";
+    public final static String AUTHORIZATION_HEADER = "Authorization";
     <%_ if (websocket == 'spring-websocket') { _%>
 
-    public static final String AUTHORIZATION_TOKEN = "access_token";
+    public final static String AUTHORIZATION_TOKEN = "access_token";
     <%_ } _%>
 
     private TokenProvider tokenProvider;

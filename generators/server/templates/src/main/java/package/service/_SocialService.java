@@ -19,6 +19,7 @@ import org.springframework.social.connect.UserProfile;
 import org.springframework.social.connect.UsersConnectionRepository;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Inject;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Optional;
@@ -26,36 +27,27 @@ import java.util.Set;
 
 @Service
 public class SocialService {
-
     private final Logger log = LoggerFactory.getLogger(SocialService.class);
 
-    private final UsersConnectionRepository usersConnectionRepository;
+    @Inject
+    private UsersConnectionRepository usersConnectionRepository;
 
-    private final AuthorityRepository authorityRepository;
+    @Inject
+    private AuthorityRepository authorityRepository;
 
-    private final PasswordEncoder passwordEncoder;
+    @Inject
+    private PasswordEncoder passwordEncoder;
 
-    private final UserRepository userRepository;
+    @Inject
+    private UserRepository userRepository;
 
-    private final MailService mailService;
     <%_ if (searchEngine == 'elasticsearch') { _%>
+    @Inject
+    private UserSearchRepository userSearchRepository;
 
-    private final UserSearchRepository userSearchRepository;
     <%_ } _%>
-
-    public SocialService(UsersConnectionRepository usersConnectionRepository, AuthorityRepository authorityRepository,
-            PasswordEncoder passwordEncoder, UserRepository userRepository,
-            MailService mailService<% if (searchEngine == 'elasticsearch') { %>, UserSearchRepository userSearchRepository<% } %>) {
-
-        this.usersConnectionRepository = usersConnectionRepository;
-        this.authorityRepository = authorityRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.userRepository = userRepository;
-        this.mailService = mailService;
-        <%_ if (searchEngine == 'elasticsearch') { _%>
-        this.userSearchRepository = userSearchRepository;
-        <%_ } _%>
-    }
+    @Inject
+    private MailService mailService;
 
     public void deleteUserSocialConnection(String login) {
         ConnectionRepository connectionRepository = usersConnectionRepository.createConnectionRepository(login);
@@ -73,13 +65,12 @@ public class SocialService {
         }
         UserProfile userProfile = connection.fetchUserProfile();
         String providerId = connection.getKey().getProviderId();
-        String imageUrl = connection.getImageUrl();
-        User user = createUserIfNotExist(userProfile, langKey, providerId, imageUrl);
+        User user = createUserIfNotExist(userProfile, langKey, providerId);
         createSocialConnection(user.getLogin(), connection);
         mailService.sendSocialRegistrationValidationEmail(user, providerId);
     }
 
-    private User createUserIfNotExist(UserProfile userProfile, String langKey, String providerId, String imageUrl) {
+    private User createUserIfNotExist(UserProfile userProfile, String langKey, String providerId) {
         String email = userProfile.getEmail();
         String userName = userProfile.getUsername();
         if (!StringUtils.isBlank(userName)) {
@@ -115,7 +106,6 @@ public class SocialService {
         newUser.setActivated(true);
         newUser.setAuthorities(authorities);
         newUser.setLangKey(langKey);
-        newUser.setImageUrl(imageUrl);
 
         <%_ if (searchEngine == 'elasticsearch') { _%>
         userSearchRepository.save(newUser);

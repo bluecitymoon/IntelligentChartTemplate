@@ -1,11 +1,11 @@
 package <%=packageName%>.gateway.ratelimiting;
 
+import <%=packageName%>.config.JHipsterProperties;
 import <%=packageName%>.security.SecurityUtils;
-
-import io.github.jhipster.config.JHipsterProperties;
 
 import java.util.Calendar;
 import java.util.Date;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -27,7 +27,8 @@ public class RateLimitingFilter extends ZuulFilter {
 
     private long rateLimit = 100000L;
 
-    private final RateLimitingRepository rateLimitingRepository;
+    @Inject
+    private RateLimitingRepository rateLimitingRepository;
 
     public RateLimitingFilter(RateLimitingRepository rateLimitingRepository, JHipsterProperties jHipsterProperties) {
         this.rateLimitingRepository = rateLimitingRepository;

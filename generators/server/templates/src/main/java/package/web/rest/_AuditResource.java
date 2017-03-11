@@ -2,8 +2,6 @@ package <%=packageName%>.web.rest;
 
 import <%=packageName%>.service.AuditEventService;
 import <%=packageName%>.web.rest.util.PaginationUtil;
-
-import io.github.jhipster.web.util.ResponseUtil;
 import io.swagger.annotations.ApiParam;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.data.domain.Page;
@@ -13,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.inject.Inject;
 import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.util.List;
@@ -24,8 +23,9 @@ import java.util.List;
 @RequestMapping("/management/audits")
 public class AuditResource {
 
-    private final AuditEventService auditEventService;
+    private AuditEventService auditEventService;
 
+    @Inject
     public AuditResource(AuditEventService auditEventService) {
         this.auditEventService = auditEventService;
     }
@@ -73,6 +73,8 @@ public class AuditResource {
      */
     @GetMapping("/{id:.+}")
     public ResponseEntity<AuditEvent> get(@PathVariable <% if (databaseType == 'sql') { %>Long <% } %><% if (databaseType == 'mongodb') { %>String <% } %>id) {
-        return ResponseUtil.wrapOrNotFound(auditEventService.find(id));
+        return auditEventService.find(id)
+                .map((entity) -> new ResponseEntity<>(entity, HttpStatus.OK))
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 }

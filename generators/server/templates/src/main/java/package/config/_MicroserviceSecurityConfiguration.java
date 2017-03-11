@@ -16,16 +16,15 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.data.repository.query.SecurityEvaluationContextExtension;
 
+import javax.inject.Inject;
+
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class MicroserviceSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    private final TokenProvider tokenProvider;
-
-    public MicroserviceSecurityConfiguration(TokenProvider tokenProvider) {
-        this.tokenProvider = tokenProvider;
-    }
+    @Inject
+    private TokenProvider tokenProvider;
 
     @Override
     public void configure(WebSecurity web) throws Exception {
@@ -54,7 +53,9 @@ public class MicroserviceSecurityConfiguration extends WebSecurityConfigurerAdap
         .and()
             .authorizeRequests()
             .antMatchers("/api/**").authenticated()
+            <%_ if (serviceDiscoveryType == 'consul') { _%>
             .antMatchers("/management/health").permitAll()
+            <%_ } _%>
             .antMatchers("/management/**").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/swagger-resources/configuration/ui").permitAll()
         .and()
@@ -73,8 +74,6 @@ public class MicroserviceSecurityConfiguration extends WebSecurityConfigurerAdap
 <%_ } _%>
 <%_ if(authenticationType == 'uaa') { _%>
 import <%=packageName%>.security.AuthoritiesConstants;
-
-import io.github.jhipster.config.JHipsterProperties;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
@@ -96,21 +95,18 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 
+import javax.inject.Inject;
+
 @Configuration
 @EnableResourceServer
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class MicroserviceSecurityConfiguration extends ResourceServerConfigurerAdapter {
 
-    private final JHipsterProperties jHipsterProperties;
+    @Inject
+    JHipsterProperties jHipsterProperties;
 
-    private final DiscoveryClient discoveryClient;
-
-    public MicroserviceSecurityConfiguration(JHipsterProperties jHipsterProperties,
-            DiscoveryClient discoveryClient) {
-
-        this.jHipsterProperties = jHipsterProperties;
-        this.discoveryClient = discoveryClient;
-    }
+    @Inject
+    DiscoveryClient discoveryClient;
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
@@ -127,22 +123,22 @@ public class MicroserviceSecurityConfiguration extends ResourceServerConfigurerA
             .authorizeRequests()
             .antMatchers("/api/profile-info").permitAll()
             .antMatchers("/api/**").authenticated()
+            <%_ if (serviceDiscoveryType == 'consul') { _%>
             .antMatchers("/management/health").permitAll()
+            <%_ } _%>
             .antMatchers("/management/**").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/swagger-resources/configuration/ui").permitAll();
     }
 
     @Bean
-    public TokenStore tokenStore(JwtAccessTokenConverter jwtAccessTokenConverter) {
-        return new JwtTokenStore(jwtAccessTokenConverter);
+    public TokenStore tokenStore() {
+        return new JwtTokenStore(jwtAccessTokenConverter());
     }
 
     @Bean
-    public JwtAccessTokenConverter jwtAccessTokenConverter(
-            @Qualifier("loadBalancedRestTemplate") RestTemplate keyUriRestTemplate) {
-
+    public JwtAccessTokenConverter jwtAccessTokenConverter() {
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-        converter.setVerifierKey(getKeyFromAuthorizationServer(keyUriRestTemplate));
+        converter.setVerifierKey(getKeyFromAuthorizationServer());
         return converter;
     }
 
@@ -153,11 +149,15 @@ public class MicroserviceSecurityConfiguration extends ResourceServerConfigurerA
         return restTemplate;
     }
 
-    private String getKeyFromAuthorizationServer(RestTemplate keyUriRestTemplate) {
+    @Inject
+    @Qualifier("loadBalancedRestTemplate")
+    private RestTemplate keyUriRestTemplate;
+
+    private String getKeyFromAuthorizationServer() {
         // Load available UAA servers
         discoveryClient.getServices();
         HttpEntity<Void> request = new HttpEntity<Void>(new HttpHeaders());
-        return (String) keyUriRestTemplate
+        return (String) this.keyUriRestTemplate
             .exchange("http://<%= uaaBaseName %>/oauth/token_key", HttpMethod.GET, request, Map.class).getBody()
             .get("value");
 

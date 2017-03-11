@@ -1,10 +1,9 @@
 package <%=packageName%>.security.social;
-<%_ if (authenticationType == 'jwt') { _%>
 
+import <%=packageName%>.config.JHipsterProperties;
+<%_ if (authenticationType == 'jwt') { _%>
 import <%=packageName%>.security.jwt.TokenProvider;
 <%_ } _%>
-
-import io.github.jhipster.config.JHipsterProperties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,30 +22,25 @@ import org.springframework.web.context.request.ServletWebRequest;
 import javax.servlet.http.Cookie;
 <%_ } _%>
 
+import javax.inject.Inject;
+
 public class CustomSignInAdapter implements SignInAdapter {
 
     @SuppressWarnings("unused")
     private final Logger log = LoggerFactory.getLogger(CustomSignInAdapter.class);
 
-    private final UserDetailsService userDetailsService;
+    @Inject
+    private UserDetailsService userDetailsService;
 
-    private final JHipsterProperties jHipsterProperties;
+    @Inject
+    private JHipsterProperties jHipsterProperties;
+
     <%_ if (authenticationType == 'jwt') { _%>
-
-    private final TokenProvider tokenProvider;
+    @Inject
+    private TokenProvider tokenProvider;
 
     <%_ } _%>
-
-    public CustomSignInAdapter(UserDetailsService userDetailsService, JHipsterProperties jHipsterProperties<% if (authenticationType == 'jwt') { %>,
-            TokenProvider tokenProvider<% } %>) {
-        this.userDetailsService = userDetailsService;
-        this.jHipsterProperties = jHipsterProperties;
-        <%_ if (authenticationType == 'jwt') { _%>
-        this.tokenProvider = tokenProvider;
-        <%_ } _%>
-    }
     <%_ if (authenticationType == 'jwt') { _%>
-
     @Override
     public String signIn(String userId, Connection<?> connection, NativeWebRequest request){
         try {

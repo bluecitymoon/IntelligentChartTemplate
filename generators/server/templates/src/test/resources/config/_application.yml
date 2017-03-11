@@ -2,9 +2,6 @@
 # Spring Boot configuration.
 #
 # This configuration is used for unit/integration tests.
-#
-# More information on profiles: https://jhipster.github.io/profiles/
-# More information on configuration properties: https://jhipster.github.io/common-application-properties/
 # ===================================================================
 
 # ===================================================================
@@ -50,7 +47,7 @@ spring:
         username:
         password:
     jpa:
-        database-platform: io.github.jhipster.domain.util.FixedH2Dialect
+        database-platform: <%=packageName%>.domain.util.FixedH2Dialect
         database: H2
         open-in-view: false
         show-sql: true
@@ -60,16 +57,10 @@ spring:
                 physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
                 implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
         properties:
-            hibernate.id.new_generator_mappings: true
             hibernate.cache.use_second_level_cache: false
             hibernate.cache.use_query_cache: false
             hibernate.generate_statistics: true
             hibernate.hbm2ddl.auto: validate
-    <%_ } _%>
-    <%_ if (hibernateCache == 'ehcache') { _%>
-    cache:
-        jcache:
-            config: config/ehcache/ehcache-dev.xml
     <%_ } _%>
     <%_ if (databaseType == 'mongodb' || databaseType == 'cassandra' || applicationType == 'gateway' || searchEngine == 'elasticsearch') { _%>
     data:
@@ -121,15 +112,13 @@ server:
 
 # ===================================================================
 # JHipster specific properties
-#
-# Full reference is available at: https://jhipster.github.io/common-application-properties/
 # ===================================================================
 
 jhipster:
     async:
-        core-pool-size: 2
-        max-pool-size: 50
-        queue-capacity: 10000
+        corePoolSize: 2
+        maxPoolSize: 50
+        queueCapacity: 10000
 <%_ if (authenticationType == 'oauth2' || authenticationType == 'jwt' || authenticationType == 'uaa') { _%>
     security:
         authentication:
@@ -137,41 +126,40 @@ jhipster:
             jwt:
                 secret: <%= jwtSecretKey %>
                 # Token is valid 24 hours
-                token-validity-in-seconds: 86400
+                tokenValidityInSeconds: 86400
     <%_ } _%>
     <%_ if ((applicationType === 'microservice' || applicationType === 'uaa') && authenticationType === 'uaa') { _%>
         client-authorization:
             <%_ if (applicationType !== 'uaa') { _%>
-            access-token-uri: http://<%= uaaBaseName.toLowerCase() %>/oauth/token
-            token-service-id: <%= uaaBaseName.toLowerCase() %>
+            accessTokenUri: http://<%= uaaBaseName.toLowerCase() %>/oauth/token
+            tokenServiceId: <%= uaaBaseName.toLowerCase() %>
             <%_ } _%>
-            client-id: internal
-            client-secret: internal
+            clientId: internal
+            clientSecret: internal
     <%_ } _%>
     <%_ if (authenticationType == 'oauth2') { _%>
             oauth:
-                client-id: <%= baseName %>app
-                client-secret: my-secret-token-to-change-in-production
+                clientid: <%= baseName %>app
+                secret: my-secret-token-to-change-in-production
                 # Token is valid 30 minutes
-                token-validity-in-seconds: 1800
+                tokenValidityInSeconds: 1800
     <%_ } _%>
 <%_ } _%>
 <%_ if (authenticationType == 'session') { _%>
     security:
-        remember-me:
+        rememberMe:
             # security key (this key should be unique for your application, and kept secret)
             key: <%= rememberMeKey %>
 <%_ } _%>
     metrics: # DropWizard Metrics configuration, used by MetricsConfiguration
         jmx.enabled: true
-
-# ===================================================================
-# Application specific properties
-# Add your own application properties here, see the ApplicationProperties class
-# to have type-safe configuration, like in the JHipsterProperties above
-#
-# More documentation is available at:
-# https://jhipster.github.io/common-application-properties/
-# ===================================================================
-
-application:
+    swagger:
+        title: <%=baseName%> API
+        description: <%=baseName%> API documentation
+        version: 0.0.1
+        termsOfServiceUrl:
+        contactName:
+        contactUrl:
+        contactEmail:
+        license:
+        licenseUrl:

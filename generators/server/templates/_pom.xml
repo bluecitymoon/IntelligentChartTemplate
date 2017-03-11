@@ -5,8 +5,8 @@
     <parent>
         <artifactId>spring-boot-starter-parent</artifactId>
         <groupId>org.springframework.boot</groupId>
-        <version>1.5.1.RELEASE</version>
-        <relativePath />
+        <version>1.4.2.RELEASE</version>
+        <relativePath/>
     </parent>
 
     <groupId><%= packageName %></groupId>
@@ -16,172 +16,137 @@
     <name><%= humanizedBaseName %></name>
     <%_ if (devDatabaseType === 'oracle' || prodDatabaseType === 'oracle') { _%>
 
-    <!-- more information at https://blogs.oracle.com/dev2dev/entry/how_to_get_oracle_jdbc -->
     <repositories>
         <repository>
-            <id>maven.oracle.com</id>
-            <name>oracle-maven-repo</name>
-            <url>https://maven.oracle.com</url>
-            <layout>default</layout>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </releases>
+            <id>Local-lib</id>
+            <url>file://${project.basedir}/lib</url>
         </repository>
     </repositories>
     <%_ } _%>
 
     <prerequisites>
-        <maven>${maven.version}</maven>
+        <maven>3.0.0</maven>
     </prerequisites>
 
     <properties>
         <argLine>-Djava.security.egd=file:/dev/./urandom -Xmx256m</argLine>
-        <assertj.version>3.6.2</assertj.version>
-        <awaitility.version>2.0.0</awaitility.version>
+        <assertj-core.version>3.5.2</assertj-core.version>
+        <awaitility.version>1.7.0</awaitility.version>
         <%_ if (databaseType === 'cassandra' || applicationType === 'gateway') { _%>
         <commons-codec.version>1.10</commons-codec.version>
         <%_ } _%>
         <commons-io.version>2.5</commons-io.version>
-        <commons-lang.version>3.5</commons-lang.version>
-        <%_ if (cucumberTests) { _%>
+        <commons-lang.version>3.4</commons-lang.version>
+        <%_ if (testFrameworks.indexOf('cucumber') != -1) { _%>
         <cucumber.version>1.2.4</cucumber.version>
         <%_ } _%>
-        <docker-maven-plugin.version>0.4.13</docker-maven-plugin.version>
         <%_ if (!skipClient) { _%>
-        <frontend-maven-plugin.version>1.3</frontend-maven-plugin.version>
+        <frontend-maven-plugin.version>1.2</frontend-maven-plugin.version>
         <%_ } _%>
-        <%_ if (gatlingTests) { _%>
-        <gatling.version>2.2.3</gatling.version>
-        <gatling-maven-plugin.version>2.2.1</gatling-maven-plugin.version>
+        <%_ if (testFrameworks.indexOf('gatling') != -1) { _%>
+        <gatling.version>2.2.0</gatling.version>
+        <gatling-maven-plugin.version>2.2.0</gatling-maven-plugin.version>
         <%_ } _%>
-        <%_ if (hibernateCache === 'hazelcast') { _%>
-        <hazelcast-hibernate52.version>1.2</hazelcast-hibernate52.version>
-        <%_ } _%>
-        <%_ if (clusteredHttpSession === 'hazelcast') { _%>
-        <hazelcast-wm.version>3.8</hazelcast-wm.version>
+        <%_ if (clusteredHttpSession === 'hazelcast' || hibernateCache === 'hazelcast') { _%>
+        <hazelcast.version>3.7</hazelcast.version>
+        <hazelcast-hibernate.version>1.1.1</hazelcast-hibernate.version>
         <%_ } _%>
         <%_ if (databaseType === 'sql') { _%>
-        <hibernate.version>5.2.7.Final</hibernate.version>
-        <hikaricp.version>2.6.0</hikaricp.version>
+        <hibernate.version>5.2.4.Final</hibernate.version>
         <%_ } _%>
-        <jacoco-maven-plugin.version>0.7.9</jacoco-maven-plugin.version>
+        <%_ if (databaseType === 'sql') { _%>
+        <hikaricp.version>2.4.6</hikaricp.version>
+        <%_ } _%>
+        <%_ if (databaseType === 'cassandra' || applicationType === 'gateway') { _%>
+        <datastax-driver.version>3.0.1</datastax-driver.version>
+        <%_ } _%>
         <java.version>1.<%= javaVersion %></java.version>
-        <%_ if (databaseType === 'sql') { _%>
-        <javassist.version>3.21.0-GA</javassist.version>
-        <%_ } _%>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
         <%_ if (hibernateCache === 'ehcache' || hibernateCache === 'hazelcast') { _%>
         <jcache.version>1.0.0</jcache.version>
         <%_ } _%>
-        <%_ if (gatlingTests) { _%>
-        <jzlib.version>1.1.3</jzlib.version>
+        <javax.inject.version>1</javax.inject.version>
+        <%_ if (searchEngine === 'elasticsearch') { _%>
+        <jna.version>4.2.2</jna.version>
         <%_ } _%>
-        <jhipster.server.version>1.0.4</jhipster.server.version>
-        <%_ if (authenticationType === 'jwt') { _%>
-        <jjwt.version>0.7.0</jjwt.version>
+        <%_ if (devDatabaseType === 'mariadb' || prodDatabaseType === 'mariadb') { _%>
+        <mariadb.version>1.4.4</mariadb.version>
         <%_ } _%>
         <%_ if (databaseType === 'sql') { _%>
-        <liquibase-hibernate5.version>3.6</liquibase-hibernate5.version>
-        <%_ if (devDatabaseType === 'mssql' || prodDatabaseType === 'mssql') { _%>
-        <liquibase-mssql.version>1.5</liquibase-mssql.version>
-        <%_ } _%>
+        <liquibase.version>3.5.3</liquibase.version>
         <liquibase-slf4j.version>2.0.0</liquibase-slf4j.version>
+        <liquibase-hibernate5.version>3.6</liquibase-hibernate5.version>
         <%_ } _%>
-        <logstash-logback-encoder.version>4.8</logstash-logback-encoder.version>
         <%_ if (databaseType === 'cassandra' || applicationType === 'gateway') { _%>
         <lz4.version>1.3.0</lz4.version>
         <%_ } _%>
-        <m2e.apt.activation>jdt_apt</m2e.apt.activation>
         <mapstruct.version>1.1.0.Final</mapstruct.version>
-        <maven-compiler-plugin.version>3.6.0</maven-compiler-plugin.version>
+        <m2e.apt.activation>jdt_apt</m2e.apt.activation>
+        <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
         <maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
         <maven-resources-plugin.version>3.0.1</maven-resources-plugin.version>
-        <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
-        <maven.compiler.source>${java.version}</maven.compiler.source>
-        <maven.compiler.target>${java.version}</maven.compiler.target>
-        <maven.version>3.0.0</maven.version>
+        <sortpom-maven-plugin.version>2.5.0</sortpom-maven-plugin.version>
         <metrics-spring.version>3.1.3</metrics-spring.version>
-        <%_ if (devDatabaseType === 'mssql' || prodDatabaseType === 'mssql') { _%>
-        <mssql-jdbc.version>6.1.0.jre8</mssql-jdbc.version>
-        <%_ } _%>
-        <%_ if (databaseType === 'mongodb') { _%>
-        <mongobee.version>0.10</mongobee.version>
-        <%_ } _%>
-        <node.version>v6.9.5</node.version>
-        <%_ if (clientPackageManager === 'npm') { _%>
-        <npm.version>4.1.2</npm.version>
-        <%_ } _%>
-        <%_ if (devDatabaseType === 'oracle' || prodDatabaseType === 'oracle') { _%>
-        <oracle.version>12.1.0.2.0</oracle.version>
-        <%_ } _%>
+        <prometheus-simpleclient.version>0.0.18</prometheus-simpleclient.version>
+        <logstash-logback-encoder.version>4.7</logstash-logback-encoder.version>
         <%_ if (devDatabaseType === 'postgresql' || prodDatabaseType === 'postgresql') { _%>
         <postgresql.version>9.4.1212</postgresql.version>
         <%_ } _%>
-        <!-- These remain empty unless the corresponding profile is active -->
-        <profile.no-liquibase />
-        <profile.swagger />
-        <prometheus-simpleclient.version>0.0.20</prometheus-simpleclient.version>
+        <run.addResources>false</run.addResources>
+        <%_ if (applicationType === 'microservice' || applicationType === 'gateway' || applicationType === 'uaa') { _%>
+        <spring-cloud.version>Brixton.SR7</spring-cloud.version>
+        <%_ } _%>
+        <%_ if (messageBroker === 'kafka') { _%>
+        <spring-cloud-stream.version>Brooklyn.RELEASE</spring-cloud-stream.version>
+        <%_ } _%>
+        <spring-security.version>4.1.3.RELEASE</spring-security.version>
+        <%_ if (authenticationType === 'oauth2' || authenticationType === 'uaa') { _%>
+        <spring-security-oauth2.version>2.0.12.RELEASE</spring-security-oauth2.version>
+        <%_ } _%>
+        <springfox.version>2.6.1</springfox.version>
+        <%_ if (enableSocialSignIn) { _%>
+        <!-- Spring social -->
+        <httpclient.version>4.5.1</httpclient.version>
+        <spring-social-security.version>1.1.2.RELEASE</spring-social-security.version>
+        <spring-social-google.version>1.0.0.RELEASE</spring-social-google.version>
+        <spring-social-facebook.version>2.0.3.RELEASE</spring-social-facebook.version>
+        <spring-social-twitter.version>1.1.2.RELEASE</spring-social-twitter.version>
+        <%_ } _%>
         <!-- Sonar properties -->
         <project.testresult.directory>${project.build.directory}/test-results</project.testresult.directory>
-        <run.addResources>false</run.addResources>
-        <scala-maven-plugin.version>3.2.2</scala-maven-plugin.version>
-        <scala.version>2.12.1</scala.version>
         <sonar-maven-plugin.version>3.2</sonar-maven-plugin.version>
-
+        <jacoco-maven-plugin.version>0.7.7.201606060606</jacoco-maven-plugin.version>
         <sonar.exclusions><%= CLIENT_MAIN_SRC_DIR %>content/**/*.*, <%= CLIENT_MAIN_SRC_DIR %>bower_components/**/*.*, <%= CLIENT_MAIN_SRC_DIR %>i18n/*.js, <%= CLIENT_DIST_DIR %>**/*.*</sonar.exclusions>
 
         <sonar.issue.ignore.multicriteria>S3437,UndocumentedApi,BoldAndItalicTagsCheck</sonar.issue.ignore.multicriteria>
 
-        <!-- Rule https://sonarqube.com/coding_rules#rule_key=Web%3ABoldAndItalicTagsCheck is ignored. Even if we agree that using the "i" tag is an awful practice, this is what is recommended by http://fontawesome.io/examples/ -->
-        <sonar.issue.ignore.multicriteria.BoldAndItalicTagsCheck.resourceKey><%= CLIENT_MAIN_SRC_DIR %>app/**/*.*</sonar.issue.ignore.multicriteria.BoldAndItalicTagsCheck.resourceKey>
-        <sonar.issue.ignore.multicriteria.BoldAndItalicTagsCheck.ruleKey>Web:BoldAndItalicTagsCheck</sonar.issue.ignore.multicriteria.BoldAndItalicTagsCheck.ruleKey>
         <!-- Rule https://sonarqube.com/coding_rules#rule_key=squid%3AS3437 is ignored, as a JPA-managed field cannot be transient -->
-        <sonar.issue.ignore.multicriteria.S3437.resourceKey><%= MAIN_DIR %>java/**/*</sonar.issue.ignore.multicriteria.S3437.resourceKey>
         <sonar.issue.ignore.multicriteria.S3437.ruleKey>squid:S3437</sonar.issue.ignore.multicriteria.S3437.ruleKey>
+        <sonar.issue.ignore.multicriteria.S3437.resourceKey><%= MAIN_DIR %>java/**/*</sonar.issue.ignore.multicriteria.S3437.resourceKey>
         <!-- Rule http://sonarqube.com/coding_rules#rule_key=squid%3AUndocumentedApi is ignored, as we want to follow "clean code" guidelines and classes, methods and arguments names should be self-explanatory -->
-        <sonar.issue.ignore.multicriteria.UndocumentedApi.resourceKey><%= MAIN_DIR %>java/**/*</sonar.issue.ignore.multicriteria.UndocumentedApi.resourceKey>
         <sonar.issue.ignore.multicriteria.UndocumentedApi.ruleKey>squid:UndocumentedApi</sonar.issue.ignore.multicriteria.UndocumentedApi.ruleKey>
+        <sonar.issue.ignore.multicriteria.UndocumentedApi.resourceKey><%= MAIN_DIR %>java/**/*</sonar.issue.ignore.multicriteria.UndocumentedApi.resourceKey>
+        <!-- Rule https://sonarqube.com/coding_rules#rule_key=Web%3ABoldAndItalicTagsCheck is ignored. Even if we agree that using the "i" tag is an awful practice, this is what is recommended by http://fontawesome.io/examples/ -->
+        <sonar.issue.ignore.multicriteria.BoldAndItalicTagsCheck.ruleKey>Web:BoldAndItalicTagsCheck</sonar.issue.ignore.multicriteria.BoldAndItalicTagsCheck.ruleKey>
+        <sonar.issue.ignore.multicriteria.BoldAndItalicTagsCheck.resourceKey><%= CLIENT_MAIN_SRC_DIR %>app/**/*.*</sonar.issue.ignore.multicriteria.BoldAndItalicTagsCheck.resourceKey>
 
+        <sonar.java.codeCoveragePlugin>jacoco</sonar.java.codeCoveragePlugin>
         <sonar.jacoco.itReportPath>${project.testresult.directory}/coverage/jacoco/jacoco-it.exec</sonar.jacoco.itReportPath>
         <sonar.jacoco.reportPath>${project.testresult.directory}/coverage/jacoco/jacoco.exec</sonar.jacoco.reportPath>
-        <sonar.java.codeCoveragePlugin>jacoco</sonar.java.codeCoveragePlugin>
 
         <sonar.javascript.jstestdriver.reportsPath>${project.testresult.directory}/karma</sonar.javascript.jstestdriver.reportsPath>
-        <!-- For Sonar < 6.2 -->
         <sonar.javascript.lcov.reportPath>${project.testresult.directory}/coverage/report-lcov/lcov.info</sonar.javascript.lcov.reportPath>
-        <!-- For Sonar >= 6.2 -->
-        <sonar.javascript.lcov.reportPaths>${project.testresult.directory}/coverage/report-lcov/lcov.info</sonar.javascript.lcov.reportPaths>
 
         <sonar.sources>${project.basedir}/<%= MAIN_DIR %></sonar.sources>
         <sonar.surefire.reportsPath>${project.testresult.directory}/surefire-reports</sonar.surefire.reportsPath>
         <sonar.tests>${project.basedir}/<%= TEST_DIR %></sonar.tests>
-
-        <sortpom-maven-plugin.version>2.5.0</sortpom-maven-plugin.version>
-        <!-- Spring properties -->
-        <%_ if (messageBroker === 'kafka') { _%>
-        <spring-cloud-stream.version>Brooklyn.SR2</spring-cloud-stream.version>
-        <%_ } _%>
-        <%_ if (serviceDiscoveryType || applicationType === 'gateway' || applicationType === 'microservice' || applicationType === 'uaa') { _%>
-        <spring-cloud.version>Camden.SR5</spring-cloud.version>
-        <%_ } _%>
-        <%_ if (authenticationType === 'oauth2' || authenticationType === 'uaa') { _%>
-        <spring-security-oauth.version>2.0.12.RELEASE</spring-security-oauth.version>
-        <%_ } _%>
-        <%_ if (enableSocialSignIn) { _%>
-        <!-- Spring social -->
-        <spring-social-google.version>1.0.0.RELEASE</spring-social-google.version>
-        <%_ } _%>
-        <springfox.version>2.6.1</springfox.version>
-        <undertow.version>1.4.10.Final</undertow.version>
-        <%_ if (databaseType === 'sql') { _%>
-        <validation-api.version>1.1.0.Final</validation-api.version>
-        <%_ } _%>
-        <%_ if (clientPackageManager === 'yarn') { _%>
-        <yarn.version>v0.20.3</yarn.version>
-        <%_ } _%>
+        <!-- These remain empty unless the corresponding profile is active -->
+        <profile.no-liquibase></profile.no-liquibase>
+        <profile.swagger></profile.swagger>
     </properties>
 
-<%_ if (serviceDiscoveryType || applicationType === 'gateway' || applicationType === 'microservice' || applicationType === 'uaa' || messageBroker === 'kafka') { _%>
+<%_ if (applicationType === 'microservice' || applicationType === 'gateway' || applicationType === 'uaa' || messageBroker === 'kafka') { _%>
     <dependencyManagement>
         <dependencies>
             <%_ if (messageBroker === 'kafka') { _%>
@@ -193,7 +158,7 @@
                 <scope>import</scope>
             </dependency>
             <%_ } _%>
-            <%_ if (serviceDiscoveryType || applicationType === 'gateway' || applicationType === 'microservice' || applicationType === 'uaa') { _%>
+            <%_ if (applicationType === 'microservice' || applicationType === 'gateway' || applicationType === 'uaa') { _%>
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -204,14 +169,9 @@
             <%_ } _%>
         </dependencies>
     </dependencyManagement>
-<%_ } _%>
 
+<%_ } _%>
     <dependencies>
-        <dependency>
-            <groupId>io.github.jhipster</groupId>
-            <artifactId>jhipster</artifactId>
-            <version>${jhipster.server.version}</version>
-        </dependency>
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-core</artifactId>
@@ -219,6 +179,15 @@
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-annotation</artifactId>
+            <version>${dropwizard-metrics.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-graphite</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-healthchecks</artifactId>
             <version>${dropwizard-metrics.version}</version>
         </dependency>
         <dependency>
@@ -239,6 +208,27 @@
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-servlets</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>metrics-healthchecks</artifactId>
+                    <groupId>io.dropwizard.metrics</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient</artifactId>
+            <version>${prometheus-simpleclient.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_servlet</artifactId>
+            <version>${prometheus-simpleclient.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_dropwizard</artifactId>
+            <version>${prometheus-simpleclient.version}</version>
         </dependency>
         <%_ if (databaseType === 'sql') { _%>
         <dependency>
@@ -249,6 +239,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-hppc</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
@@ -257,6 +248,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-json-org</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
@@ -269,30 +261,30 @@
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>
+            <version>${hazelcast.version}</version>
         </dependency>
         <%_ } _%>
         <%_ if (hibernateCache === 'hazelcast') { _%>
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast-hibernate52</artifactId>
-            <version>${hazelcast-hibernate52.version}</version>
+            <version>${hazelcast-hibernate.version}</version>
         </dependency>
-        <%_ } _%>
-        <%_ if (hibernateCache === 'hazelcast' || clusteredHttpSession === 'hazelcast') { _%>
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast-spring</artifactId>
+            <version>${hazelcast.version}</version>
         </dependency>
         <%_ } _%>
         <%_ if (clusteredHttpSession === 'hazelcast') { _%>
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast-wm</artifactId>
-            <version>${hazelcast-wm.version}</version>
+            <version>${hazelcast.version}</version>
         </dependency>
         <%_ } _%>
         <dependency>
-            <groupId>org.awaitility</groupId>
+            <groupId>com.jayway.awaitility</groupId>
             <artifactId>awaitility</artifactId>
             <version>${awaitility.version}</version>
             <scope>test</scope>
@@ -381,7 +373,7 @@
             <scope>test</scope>
         </dependency>
         <%_ } _%>
-        <%_ if (gatlingTests) { _%>
+        <%_ if (testFrameworks.indexOf('gatling') != -1) { _%>
         <dependency>
             <groupId>io.gatling.highcharts</groupId>
             <artifactId>gatling-charts-highcharts</artifactId>
@@ -391,15 +383,29 @@
         <dependency>
             <groupId>com.jcraft</groupId>
             <artifactId>jzlib</artifactId>
-            <version>${jzlib.version}</version>
+            <version>1.1.2</version>
         </dependency>
+        <%_ if (databaseType === 'cassandra') { _%>
+        <!-- include netty handler explicitly to overcome dependency mismatch when using Cassandra -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-handler</artifactId>
+            <version>4.0.36.Final</version>
+        </dependency>
+        <%_ } _%>
         <%_ } _%>
         <%_ if (hibernateCache === 'ehcache' || hibernateCache === 'hazelcast') { _%>
         <dependency>
             <groupId>javax.cache</groupId>
             <artifactId>cache-api</artifactId>
+            <version>${jcache.version}</version>
         </dependency>
         <%_ } _%>
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <version>${javax.inject.version}</version>
+        </dependency>
         <%_ if (devDatabaseType === 'mysql' || prodDatabaseType === 'mysql') { _%>
         <dependency>
             <groupId>mysql</groupId>
@@ -410,6 +416,7 @@
         <dependency>
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
+            <version>${mariadb.version}</version>
         </dependency>
         <%_ } _%>
         <%_ if (databaseType === 'cassandra' || applicationType === 'gateway') { _%>
@@ -420,28 +427,28 @@
         </dependency>
         <%_ } _%>
         <%_ if (devDatabaseType === 'oracle' || prodDatabaseType === 'oracle') { _%>
-        <!-- more information at https://blogs.oracle.com/dev2dev/entry/how_to_get_oracle_jdbc -->
         <dependency>
-            <groupId>com.oracle.jdbc</groupId>
-            <artifactId>ojdbc7</artifactId>
-            <version>${oracle.version}</version>
+            <groupId>oracle</groupId>
+            <artifactId>ojdbc</artifactId>
+            <version>7</version>
         </dependency>
         <%_ } _%>
         <%_ if (devDatabaseType === 'mssql' || prodDatabaseType === 'mssql') { _%>
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
-            <version>${mssql-jdbc.version}</version>
+            <version>6.1.0.jre8</version>
         </dependency>
         <dependency>
             <groupId>com.github.sabomichal</groupId>
             <artifactId>liquibase-mssql</artifactId>
-            <version>${liquibase-mssql.version}</version>
+            <version>1.5</version>
         </dependency>
         <%_ } _%>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
+            <version>${assertj-core.version}</version>
             <scope>test</scope>
         </dependency>
         <%_ if (databaseType === 'cassandra') { _%>
@@ -477,6 +484,7 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-validator</artifactId>
+            <version>5.3.3.Final</version>
         </dependency>
         <dependency>
             <groupId>org.liquibase</groupId>
@@ -493,7 +501,7 @@
         <dependency>
             <groupId>com.github.mongobee</groupId>
             <artifactId>mongobee</artifactId>
-            <version>${mongobee.version}</version>
+            <version>0.10</version>
         </dependency>
         <%_ } _%>
         <%_ if (devDatabaseType === 'postgresql' || prodDatabaseType === 'postgresql') { _%>
@@ -546,6 +554,7 @@
         <dependency>
             <groupId>net.java.dev.jna</groupId>
             <artifactId>jna</artifactId>
+            <version>${jna.version}</version>
         </dependency>
         <%_ } _%>
         <%_ if (databaseType === 'mongodb') { _%>
@@ -621,19 +630,21 @@
         <dependency>
             <groupId>org.springframework.security.oauth</groupId>
             <artifactId>spring-security-oauth2</artifactId>
+            <version>${spring-security-oauth2.version}</version>
         </dependency>
         <%_ } _%>
         <%_ if (authenticationType === 'jwt') { _%>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
-            <version>${jjwt.version}</version>
+            <version>0.7.0</version>
         </dependency>
         <%_ } _%>
         <%_ if (authenticationType === 'uaa') { _%>
         <dependency>
             <groupId>org.springframework.security.oauth</groupId>
             <artifactId>spring-security-oauth2</artifactId>
+            <version>${spring-security-oauth2.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
@@ -645,6 +656,7 @@
         <dependency>
             <groupId>com.datastax.cassandra</groupId>
             <artifactId>cassandra-driver-core</artifactId>
+            <version>${datastax-driver.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.codahale.metrics</groupId>
@@ -655,11 +667,12 @@
         <dependency>
             <groupId>com.datastax.cassandra</groupId>
             <artifactId>cassandra-driver-extras</artifactId>
-            <version>${cassandra-driver.version}</version>
+            <version>${datastax-driver.version}</version>
         </dependency>
         <dependency>
             <groupId>com.datastax.cassandra</groupId>
             <artifactId>cassandra-driver-mapping</artifactId>
+            <version>${datastax-driver.version}</version>
         </dependency>
         <%_ } _%>
         <!-- Spring Cloud -->
@@ -686,19 +699,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-hystrix</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-spectator</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.retry</groupId>
-            <artifactId>spring-retry</artifactId>
-        </dependency>
-        <%_ } _%>
         <%_ if (serviceDiscoveryType == 'eureka') { _%>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -717,6 +717,19 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-consul-config</artifactId>
+        </dependency>
+        <%_ } _%>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-hystrix</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-spectator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
         </dependency>
         <%_ } _%>
         <%_ if (authenticationType === 'uaa') { _%>
@@ -763,6 +776,7 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-messaging</artifactId>
+            <version>${spring-security.version}</version>
         </dependency>
         <%_ } _%>
         <%_ if (enableSocialSignIn) { _%>
@@ -789,7 +803,7 @@
             <artifactId>spring-social-twitter</artifactId>
         </dependency>
         <%_ } _%>
-        <%_ if (cucumberTests) { _%>
+        <%_ if (testFrameworks.indexOf('cucumber') != -1) { _%>
         <!-- cucumber -->
         <dependency>
             <groupId>info.cukes</groupId>
@@ -808,7 +822,7 @@
     </dependencies>
     <build>
         <defaultGoal>spring-boot:run</defaultGoal>
-        <%_ if (cucumberTests) { _%>
+        <%_ if (testFrameworks.indexOf('cucumber') != -1) { _%>
         <testResources>
             <testResource>
                 <directory><%= SERVER_TEST_RES_DIR %></directory>
@@ -840,7 +854,7 @@
                     <expandEmptyElements>false</expandEmptyElements>
                 </configuration>
             </plugin>
-            <%_ if (gatlingTests) { _%>
+            <%_ if (testFrameworks.indexOf('gatling') != -1) { _%>
             <plugin>
                 <groupId>io.gatling</groupId>
                 <artifactId>gatling-maven-plugin</artifactId>
@@ -863,7 +877,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven-compiler-plugin.version}</version>
+                <version>3.6.0</version>
                 <configuration>
                     <annotationProcessorPaths>
                         <path>
@@ -897,8 +911,8 @@
                 <configuration>
                     <rules>
                         <requireMavenVersion>
-                            <message>You are running an older version of Maven. JHipster requires at least Maven ${maven.version}</message>
-                            <version>[${maven.version},)</version>
+                            <message>You are running an older version of Maven. JHipster requires at least Maven 3.0</message>
+                            <version>[3.0.0,)</version>
                         </requireMavenVersion>
                         <requireJavaVersion>
                             <message>You are running an older version of Java. JHipster requires at least JDK ${java.version}</message>
@@ -949,7 +963,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <%_ if (cucumberTests) { _%>
+                <%_ if (testFrameworks.indexOf('cucumber') != -1) { _%>
                 <executions>
                     <execution>
                         <id>default-test</id>
@@ -1025,7 +1039,7 @@
                     <defaultSchemaName><% if (devDatabaseType === 'mysql') { %><%= baseName %><% } else if (devDatabaseType === 'postgresql') { %><% } %></defaultSchemaName>
                     <username><% if (devDatabaseType === 'mysql') { %>root<% } else if (devDatabaseType === 'postgresql' || devDatabaseType === 'h2Disk' || devDatabaseType === 'h2Memory') { %><%= baseName %><% } else if (devDatabaseType === 'mssql') { %>SA<% } %></username>
                     <password><% if (devDatabaseType === 'mssql') { %>yourStrong(!)Password<% } %></password>
-                    <referenceUrl>hibernate:spring:<%=packageName%>.domain?dialect=<% if (devDatabaseType === 'mysql') { %>org.hibernate.dialect.MySQL5InnoDBDialect<% } else if (devDatabaseType === 'mariadb') { %>org.hibernate.dialect.MySQL5InnoDBDialect<% } else if (devDatabaseType === 'postgresql') { %>org.hibernate.dialect.PostgreSQL82Dialect<% } else if (devDatabaseType === 'h2Disk') { %>org.hibernate.dialect.H2Dialect<% } else if (devDatabaseType === 'oracle') { %>org.hibernate.dialect.Oracle12cDialect<% } else if (devDatabaseType === 'mssql') { %>org.hibernate.dialect.SQLServerDialect<% } %>&amp;hibernate.physical_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy&amp;hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy</referenceUrl>
+                    <referenceUrl>hibernate:spring:<%=packageName%>.domain?dialect=<% if (devDatabaseType === 'mysql') { %>org.hibernate.dialect.MySQL5InnoDBDialect<% } else if (devDatabaseType === 'mariadb') { %>org.hibernate.dialect.MySQL5InnoDBDialect<% } else if (devDatabaseType === 'postgresql') { %>org.hibernate.dialect.PostgreSQL82Dialect<% } else if (devDatabaseType === 'h2Disk') { %>org.hibernate.dialect.H2Dialect<% } else if (devDatabaseType === 'oracle') { %>org.hibernate.dialect.Oracle10gDialect<% } else if (devDatabaseType === 'mssql') { %>org.hibernate.dialect.SQLServerDialect<% } %>&amp;hibernate.physical_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy&amp;hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy</referenceUrl>
                     <verbose>true</verbose>
                     <logging>debug</logging>
                     <%_ if (authenticationType === 'oauth2') { _%>
@@ -1036,7 +1050,7 @@
                     <dependency>
                         <groupId>org.javassist</groupId>
                         <artifactId>javassist</artifactId>
-                        <version>${javassist.version}</version>
+                        <version>3.18.2-GA</version>
                     </dependency>
                     <dependency>
                         <groupId>org.liquibase.ext</groupId>
@@ -1051,7 +1065,7 @@
                     <dependency>
                         <groupId>javax.validation</groupId>
                         <artifactId>validation-api</artifactId>
-                        <version>${validation-api.version}</version>
+                        <version>1.1.0.Final</version>
                     </dependency>
                 </dependencies>
             </plugin>
@@ -1071,7 +1085,7 @@
             <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>${docker-maven-plugin.version}</version>
+                <version>0.4.10</version>
                 <configuration>
                     <imageName><%= baseName.toLowerCase() %></imageName>
                     <dockerDirectory>src/main/docker</dockerDirectory>
@@ -1116,32 +1130,28 @@
                                     <action>
                                         <ignore/>
                                     </action>
-                                </pluginExecution>
-                                <%_ if(!skipClient) { _%>
+                                </pluginExecution><% if(!skipClient) {%>
                                 <pluginExecution>
                                     <pluginExecutionFilter>
                                         <groupId>com.github.eirslett</groupId>
                                         <artifactId>frontend-maven-plugin</artifactId>
                                         <versionRange>${frontend-maven-plugin.version}</versionRange>
                                         <goals>
-                                            <%_ if (clientPackageManager === 'yarn') { _%>
+                                        <%_ if (yarnInstall) { _%>
                                             <goal>install-node-and-yarn</goal>
                                             <goal>yarn</goal>
-                                            <%_ } else if (clientPackageManager === 'npm') { _%>
+                                        <%_ } else { _%>
                                             <goal>install-node-and-npm</goal>
                                             <goal>npm</goal>
-                                            <%_ } _%>
-                                            <%_ if (clientFramework === 'angular1') { _%>
+                                        <%_ } _%>
                                             <goal>bower</goal>
                                             <goal>gulp</goal>
-                                            <%_ } _%>
                                         </goals>
                                     </pluginExecutionFilter>
                                     <action>
                                         <ignore/>
                                     </action>
-                                </pluginExecution>
-                                <%_ } _%>
+                                </pluginExecution><% } %>
                             </pluginExecutions>
                         </lifecycleMappingMetadata>
                     </configuration>
@@ -1162,55 +1172,15 @@
                 <profile.swagger>,swagger</profile.swagger>
             </properties>
         </profile>
-        <%_ if (!skipClient && clientFramework === 'angular2') { _%>
         <profile>
-            <id>webpack</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.github.eirslett</groupId>
-                        <artifactId>frontend-maven-plugin</artifactId>
-                        <version>${frontend-maven-plugin.version}</version>
-                        <executions>
-                            <%_ if (clientPackageManager === 'yarn') { _%>
-                            <execution>
-                                <id>install node and yarn</id>
-                                <goals>
-                                    <goal>install-node-and-yarn</goal>
-                                </goals>
-                                <configuration>
-                                    <nodeVersion>${node.version}</nodeVersion>
-                                    <yarnVersion>${yarn.version}</yarnVersion>
-                                </configuration>
-                            </execution>
-                            <%_ } else if (clientPackageManager === 'npm') { _%>
-                            <execution>
-                                <id>install node and npm</id>
-                                <goals>
-                                    <goal>install-node-and-npm</goal>
-                                </goals>
-                                <configuration>
-                                    <nodeVersion>${node.version}</nodeVersion>
-                                    <npmVersion>${npm.version}</npmVersion>
-                                </configuration>
-                            </execution>
-                            <%_ } _%>
-                            <execution>
-                                <id>webpack build dev</id>
-                                <goals>
-                                    <goal><%= clientPackageManager %></goal>
-                                </goals>
-                                <phase>generate-resources</phase>
-                                <configuration>
-                                    <arguments>run webpack:build:dev</arguments>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
+            <id>shell</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-remote-shell</artifactId>
+                </dependency>
+            </dependencies>
         </profile>
-        <%_ } _%>
         <profile>
             <id>dev</id>
             <activation>
@@ -1232,10 +1202,8 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-war-plugin</artifactId>
-                        <configuration>
-                            <%_ if (!skipClient) { _%>
-                            <warSourceDirectory><%= CLIENT_MAIN_SRC_DIR %></warSourceDirectory>
-                            <%_ } _%>
+                        <configuration><% if (!skipClient) { %>
+                            <warSourceDirectory><%= CLIENT_MAIN_SRC_DIR %></warSourceDirectory><% } %>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -1256,55 +1224,21 @@
                 </dependency>
             </dependencies>
             <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-clean-plugin</artifactId>
-                        <configuration>
-                            <filesets>
-                                <fileset>
-                                    <directory><%= CLIENT_DIST_DIR %></directory>
-                                </fileset>
-                            </filesets>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-war-plugin</artifactId>
-                        <configuration>
-                            <%_ if (!skipClient) { _%>
-                            <warSourceDirectory><%= CLIENT_DIST_DIR %></warSourceDirectory>
-                            <%_ } _%>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-maven-plugin</artifactId>
-                        <configuration>
-                            <executable>true</executable>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>build-info</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <%_ if (!skipClient) { _%>
+                <plugins><% if(!skipClient) {%>
                     <plugin>
                         <groupId>com.github.eirslett</groupId>
                         <artifactId>frontend-maven-plugin</artifactId>
                         <version>${frontend-maven-plugin.version}</version>
                         <executions>
-                            <%_ if (clientPackageManager === 'yarn') { _%>
+                        <%_ if (yarnInstall) { _%>
                             <execution>
                                 <id>install node and yarn</id>
                                 <goals>
                                     <goal>install-node-and-yarn</goal>
                                 </goals>
                                 <configuration>
-                                    <nodeVersion>${node.version}</nodeVersion>
-                                    <yarnVersion>${yarn.version}</yarnVersion>
+                                    <nodeVersion>v6.9.1</nodeVersion>
+                                    <yarnVersion>v0.17.6</yarnVersion>
                                 </configuration>
                             </execution>
                             <execution>
@@ -1320,15 +1254,15 @@
                                     <%_ } _%>
                                 </configuration>
                             </execution>
-                            <%_ } else if (clientPackageManager === 'npm') { _%>
+                        <%_ } else { _%>
                             <execution>
                                 <id>install node and npm</id>
                                 <goals>
                                     <goal>install-node-and-npm</goal>
                                 </goals>
                                 <configuration>
-                                    <nodeVersion>${node.version}</nodeVersion>
-                                    <npmVersion>${npm.version}</npmVersion>
+                                    <nodeVersion>v6.9.1</nodeVersion>
+                                    <npmVersion>3.10.9</npmVersion>
                                 </configuration>
                             </execution>
                             <execution>
@@ -1340,7 +1274,7 @@
                                     <arguments>install</arguments>
                                 </configuration>
                             </execution>
-                                <%_ if (useSass) { _%>
+                            <%_ if (useSass) { _%>
                             <execution>
                                 <id>npm rebuild node-sass</id>
                                 <goals>
@@ -1350,9 +1284,8 @@
                                     <arguments>rebuild node-sass</arguments>
                                 </configuration>
                             </execution>
-                                <%_ } _%>
                             <%_ } _%>
-                            <%_ if (clientFramework === 'angular1') { _%>
+                        <%_ } _%>
                             <execution>
                                 <id>bower install</id>
                                 <goals>
@@ -1381,22 +1314,40 @@
                                     <arguments>test --no-notification</arguments>
                                 </configuration>
                             </execution>
-                            <%_ } _%>
-                            <%_ if (clientFramework === 'angular2') { _%>
+                        </executions>
+                    </plugin><% } %>
+                    <plugin>
+                        <artifactId>maven-clean-plugin</artifactId>
+                        <version>2.5</version>
+                        <configuration>
+                            <filesets>
+                                <fileset>
+                                    <directory><%= CLIENT_DIST_DIR %></directory>
+                                </fileset>
+                            </filesets>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <configuration><% if (!skipClient) { %>
+                            <warSourceDirectory><%= CLIENT_DIST_DIR %></warSourceDirectory><% } %>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <configuration>
+                            <executable>true</executable>
+                        </configuration>
+                        <executions>
                             <execution>
-                                <id>webpack build prod</id>
                                 <goals>
-                                    <goal><%= clientPackageManager %></goal>
+                                    <goal>build-info</goal>
                                 </goals>
-                                <phase>generate-resources</phase>
-                                <configuration>
-                                    <arguments>run webpack:prod</arguments>
-                                </configuration>
                             </execution>
-                            <%_ } _%>
                         </executions>
                     </plugin>
-                    <%_ } _%>
                 </plugins>
             </build>
             <properties>
@@ -1467,7 +1418,7 @@
                     <plugin>
                         <groupId>net.alchim31.maven</groupId>
                         <artifactId>scala-maven-plugin</artifactId>
-                        <version>${scala-maven-plugin.version}</version>
+                        <version>3.2.2</version>
                         <executions>
                             <execution>
                                 <id>compile</id>
@@ -1489,7 +1440,7 @@
                         <configuration>
                             <recompileMode>incremental</recompileMode>
                             <verbose>true</verbose>
-                            <scalaVersion>${scala.version}</scalaVersion>
+                            <scalaVersion>2.11.7</scalaVersion>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -1500,41 +1451,6 @@
                 <!-- default Spring profiles -->
                 <spring.profiles.active>dev,swagger</spring.profiles.active>
             </properties>
-        </profile>
-        <profile>
-            <!--
-                Profile for monitoring the application with Graphite.
-            -->
-            <id>graphite</id>
-            <dependencies>
-                <dependency>
-                    <groupId>io.dropwizard.metrics</groupId>
-                    <artifactId>metrics-graphite</artifactId>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <!--
-                Profile for monitoring the application with Prometheus.
-            -->
-            <id>prometheus</id>
-            <dependencies>
-                <dependency>
-                    <groupId>io.prometheus</groupId>
-                    <artifactId>simpleclient</artifactId>
-                    <version>${prometheus-simpleclient.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>io.prometheus</groupId>
-                    <artifactId>simpleclient_servlet</artifactId>
-                    <version>${prometheus-simpleclient.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>io.prometheus</groupId>
-                    <artifactId>simpleclient_dropwizard</artifactId>
-                    <version>${prometheus-simpleclient.version}</version>
-                </dependency>
-            </dependencies>
         </profile>
         <profile>
             <!--

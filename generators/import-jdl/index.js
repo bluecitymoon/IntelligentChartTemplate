@@ -30,18 +30,6 @@ module.exports = JDLGenerator.extend({
             this.baseName = this.config.get('baseName');
             this.prodDatabaseType = this.config.get('prodDatabaseType');
             this.skipClient = this.config.get('skipClient');
-            this.clientFramework = this.config.get('clientFramework');
-            if (!this.clientFramework) {
-                this.clientFramework = 'angular1';
-            }
-            this.clientPackageManager = this.config.get('clientPackageManager');
-            if (!this.clientPackageManager) {
-                if (this.yarnInstall) {
-                    this.clientPackageManager = 'yarn';
-                } else {
-                    this.clientPackageManager = 'npm';
-                }
-            }
         }
     },
 
@@ -63,7 +51,7 @@ module.exports = JDLGenerator.extend({
                 jhiCore.exportToJSON(entities, this.options['force']);
             } catch (e) {
                 this.log(e);
-                this.error('\nError while parsing entities from JDL\n');
+                this.error(`\nError while parsing entities from JDL\n`);
             }
 
 
@@ -95,17 +83,8 @@ module.exports = JDLGenerator.extend({
             this.log('\n' + chalk.bold.green('Running gulp Inject to add javascript to index\n'));
             this.spawnCommand('gulp', ['inject:app']);
         };
-        if (!this.options['skip-install'] && !this.skipClient && this.clientFramework === 'angular1') {
+        if (!this.options['skip-install'] && !this.skipClient) {
             injectJsFilesToIndex.call(this);
-        }
-
-        // rebuild client for Angular
-        var rebuildClient = function () {
-            this.log('\n' + chalk.bold.green('Running `webpack:build:dev` to update client app\n'));
-            this.spawnCommand(this.clientPackageManager, ['run', 'webpack:build:dev']);
-        };
-        if (!this.options['skip-install'] && !this.skipClient && this.clientFramework === 'angular2') {
-            rebuildClient.call(this);
         }
     }
 

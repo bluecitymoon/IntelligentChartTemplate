@@ -1,18 +1,13 @@
 package <%=packageName%>.config;
 <%_ if (databaseType == 'mongodb') { _%>
 
+import <%=packageName%>.domain.util.JSR310DateConverters.*;
+
 import com.github.mongobee.Mongobee;
-
-import io.github.jhipster.config.JHipsterConstants;
-import io.github.jhipster.domain.util.JSR310DateConverters.*;
-
 <%_ if (authenticationType == 'oauth2') { _%>
 
 import <%=packageName%>.config.oauth2.OAuth2AuthenticationReadConverter;
-<%_ } } else { _%>
-
-import io.github.jhipster.config.JHipsterConstants;
-<%_ } _%>
+<%_ } } _%>
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;<% if (hibernateCache == 'hazelcast') { %>
@@ -41,7 +36,7 @@ import java.util.List;
 <%_ if (databaseType == 'mongodb') { _%>
 @EnableMongoRepositories("<%=packageName%>.repository")
 <%_ } _%>
-@Profile(JHipsterConstants.SPRING_PROFILE_CLOUD)
+@Profile(Constants.SPRING_PROFILE_CLOUD)
 public class CloudDatabaseConfiguration extends AbstractCloudConfig {
 
     private final Logger log = LoggerFactory.getLogger(CloudDatabaseConfiguration.class);

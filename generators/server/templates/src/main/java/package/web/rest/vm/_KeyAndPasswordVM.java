@@ -9,6 +9,9 @@ public class KeyAndPasswordVM {
 
     private String newPassword;
 
+    public KeyAndPasswordVM() {
+    }
+
     public String getKey() {
         return key;
     }

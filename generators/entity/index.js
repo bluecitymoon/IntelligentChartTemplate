@@ -95,7 +95,6 @@ module.exports = EntityGenerator.extend({
         this.relNameChoices = [];
     },
     initializing: {
-
         getConfig: function (args) {
             this.useConfigurationFile = false;
             this.env.options.appPath = this.config.get('appPath') || constants.CLIENT_MAIN_SRC_DIR;
@@ -113,33 +112,15 @@ module.exports = EntityGenerator.extend({
             this.nativeLanguage = this.config.get('nativeLanguage');
             this.languages = this.config.get('languages');
             this.buildTool = this.config.get('buildTool');
-            this.jhiPrefix = this.config.get('jhiPrefix');
             this.testFrameworks = this.config.get('testFrameworks');
             // backward compatibility on testing frameworks
             if (this.testFrameworks === undefined) {
                 this.testFrameworks = ['gatling'];
             }
-            this.protractorTests = this.testFrameworks.indexOf('protractor') !== -1;
-            this.gatlingTests = this.testFrameworks.indexOf('gatling') !== -1;
-            this.cucumberTests = this.testFrameworks.indexOf('cucumber') !== -1;
-
-            this.clientFramework = this.config.get('clientFramework');
-            if (!this.clientFramework) {
-                this.clientFramework = 'angular1';
-            }
-            this.clientPackageManager = this.config.get('clientPackageManager');
-            if (!this.clientPackageManager) {
-                if (this.yarnInstall) {
-                    this.clientPackageManager = 'yarn';
-                } else {
-                    this.clientPackageManager = 'npm';
-                }
-            }
 
             this.skipClient = this.applicationType === 'microservice' || this.config.get('skipClient') || this.options['skip-client'];
 
             this.angularAppName = this.getAngularAppName();
-            this.angular2AppName = this.getAngular2AppName();
             this.jhipsterConfigDirectory = '.jhipster';
             this.mainClass = this.getMainClassName();
             this.microserviceAppName = '';
@@ -153,7 +134,7 @@ module.exports = EntityGenerator.extend({
         },
 
         validateDbExistence: function () {
-            if(this.databaseType === 'no' && !(this.authenticationType === 'uaa' && this.applicationType === 'gateway')) {
+            if(this.databaseType === 'no') {
                 this.error(chalk.red('The entity cannot be generated as the application does not have a database configured!'));
             }
         },
@@ -246,7 +227,6 @@ module.exports = EntityGenerator.extend({
             this.skipServer = true;
         }
     },
-
     _getMicroserviceAppName: function () {
         return _.camelCase(this.microserviceName, true) + (this.microserviceName.endsWith('App') ? '' : 'App');
     },
@@ -424,12 +404,12 @@ module.exports = EntityGenerator.extend({
             this.entityInstancePlural = pluralize(this.entityInstance);
             this.entityApiUrl = entityNamePluralizedAndSpinalCased;
             this.entityFolderName = entityNameSpinalCased;
-            this.entityFileName = _.kebabCase(this.entityNameCapitalized + _.upperFirst(this.entityAngularJSSuffix));
+            this.entityFileName = entityNameSpinalCased + this.entityAngularJSSuffix;
             this.entityPluralFileName = entityNamePluralizedAndSpinalCased + this.entityAngularJSSuffix;
-            this.entityServiceFileName = this.entityFileName;
-            this.entityAngularName = this.entityClass + _.upperFirst(_.camelCase(this.entityAngularJSSuffix));
-            this.entityStateName = _.kebabCase(this.entityAngularName);
-            this.entityUrl = this.entityStateName;
+            this.entityServiceFileName = entityNameSpinalCased;
+            this.entityAngularJSName = this.entityClass + _.upperFirst(_.camelCase(this.entityAngularJSSuffix));
+            this.entityStateName = entityNameSpinalCased + this.entityAngularJSSuffix;
+            this.entityUrl = entityNameSpinalCased + this.entityAngularJSSuffix;
             this.entityTranslationKey = this.entityInstance;
             this.entityTranslationKeyMenu = _.camelCase(this.entityStateName);
 
@@ -447,7 +427,6 @@ module.exports = EntityGenerator.extend({
             if (!this.relationships) {
                 this.relationships = [];
             }
-            this.differentRelationships = [];
 
             // Load in-memory data for fields
             this.fields && this.fields.forEach( function (field) {
@@ -495,7 +474,7 @@ module.exports = EntityGenerator.extend({
 
                 if (_.isUndefined(field.fieldValidateRulesPatternJava)) {
                     field.fieldValidateRulesPatternJava = field.fieldValidateRulesPattern ?
-                        field.fieldValidateRulesPattern.replace(/\\/g, '\\\\').replace(/"/g, '\\"') : field.fieldValidateRulesPattern;
+                        field.fieldValidateRulesPattern.replace(/\\/g, '\\\\') : field.fieldValidateRulesPattern;
                 }
 
                 if (_.isArray(field.fieldValidateRules) && field.fieldValidateRules.length >= 1) {
@@ -561,32 +540,12 @@ module.exports = EntityGenerator.extend({
                     relationship.otherEntityRelationshipNameCapitalizedPlural = pluralize(_.upperFirst(relationship.otherEntityRelationshipName));
                 }
 
-                let otherEntityName = relationship.otherEntityName;
-                let otherEntityData = this.getEntityJson(otherEntityName);
-                if (otherEntityName === 'user') {
-                    relationship.otherEntityTableName = 'jhi_user';
-                } else {
-                    relationship.otherEntityTableName = otherEntityData ? otherEntityData.entityTableName : null;
-                    if (!relationship.otherEntityTableName) {
-                        relationship.otherEntityTableName = this.getTableName(otherEntityName);
-                    }
-                }
-
                 if (_.isUndefined(relationship.otherEntityNamePlural)) {
                     relationship.otherEntityNamePlural = pluralize(relationship.otherEntityName);
                 }
 
                 if (_.isUndefined(relationship.otherEntityNameCapitalized)) {
                     relationship.otherEntityNameCapitalized = _.upperFirst(relationship.otherEntityName);
-                }
-
-                if (_.isUndefined(relationship.otherEntityAngularName)) {
-                    if (relationship.otherEntityNameCapitalized !== 'User') {
-                        var otherEntityAngularSuffix = otherEntityData ? otherEntityData.angularJSSuffix || '' : '';
-                        relationship.otherEntityAngularName = _.upperFirst(relationship.otherEntityName) + _.upperFirst(_.camelCase(otherEntityAngularSuffix));
-                    } else {
-                        relationship.otherEntityAngularName = 'User';
-                    }
                 }
 
                 if (_.isUndefined(relationship.otherEntityNameCapitalizedPlural)) {
@@ -598,16 +557,7 @@ module.exports = EntityGenerator.extend({
                 }
 
                 if (_.isUndefined(relationship.otherEntityStateName)) {
-                    relationship.otherEntityStateName = _.kebabCase(relationship.otherEntityAngularName);
-                }
-                if (_.isUndefined(relationship.otherEntityModuleName)) {
-                    if (relationship.otherEntityNameCapitalized !== 'User') {
-                        relationship.otherEntityModuleName = this.angular2AppName + relationship.otherEntityNameCapitalized + 'Module';
-                        relationship.otherEntityModulePath = _.kebabCase(_.lowerFirst(relationship.otherEntityName));
-                    } else {
-                        relationship.otherEntityModuleName = this.angular2AppName + 'SharedModule';
-                        relationship.otherEntityModulePath = '../shared';
-                    }
+                    relationship.otherEntityStateName = _.trim(_.kebabCase(relationship.otherEntityName), '-') + this.entityAngularJSSuffix;
                 }
                 // Load in-memory data for root
                 if (relationship.relationshipType === 'many-to-many' && relationship.ownerSide) {
@@ -629,7 +579,6 @@ module.exports = EntityGenerator.extend({
                 var entityType = relationship.otherEntityNameCapitalized;
                 if (this.differentTypes.indexOf(entityType) === -1) {
                     this.differentTypes.push(entityType);
-                    this.differentRelationships.push(relationship);
                 }
             }, this);
 
@@ -658,20 +607,11 @@ module.exports = EntityGenerator.extend({
 
     install: function () {
         var injectJsFilesToIndex = function () {
-            this.log('\n' + chalk.bold.green('Running `gulp inject` to add JavaScript to index.html\n'));
+            this.log('\n' + chalk.bold.green('Running gulp Inject to add javascript to index\n'));
             this.spawnCommand('gulp', ['inject:app']);
         };
-        if (!this.options['skip-install'] && !this.skipClient && this.clientFramework === 'angular1') {
+        if (!this.options['skip-install'] && !this.skipClient) {
             injectJsFilesToIndex.call(this);
-        }
-
-        // rebuild client for Angular
-        var rebuildClient = function () {
-            this.log('\n' + chalk.bold.green('Running `webpack:build:dev` to update client app\n'));
-            this.spawnCommand(this.clientPackageManager, ['run', 'webpack:build:dev']);
-        };
-        if (!this.options['skip-install'] && !this.skipClient && this.clientFramework === 'angular2') {
-            rebuildClient.call(this);
         }
     },
 

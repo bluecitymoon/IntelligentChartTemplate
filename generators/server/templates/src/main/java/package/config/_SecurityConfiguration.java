@@ -6,16 +6,14 @@ import <%=packageName%>.security.*;
 <%_ if (authenticationType == 'jwt') { _%>
 import <%=packageName%>.security.jwt.*;
 <%_ } _%>
-
 <%_ if (authenticationType == 'session') { _%>
-import io.github.jhipster.config.JHipsterProperties;
+import <%=packageName%>.config.JHipsterProperties;
 <%_ } _%>
-import io.github.jhipster.security.*;
 
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;<% if (authenticationType == 'oauth2') { %>
+import org.springframework.http.HttpMethod;<% if (authenticationType == 'oauth2' || authenticationType == 'jwt') { %>
 import org.springframework.security.authentication.AuthenticationManager;<% } %>
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -26,107 +24,62 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;<% } %><% if (clusteredHttpSession == 'hazelcast') { %>
 import org.springframework.security.core.session.SessionRegistry;<% } %>
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.data.repository.query.SecurityEvaluationContextExtension;
 <%_ if (authenticationType == 'session') { _%>
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 <%_ } _%>
-<%_ if (authenticationType !== 'oauth2') { _%>
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.filter.CorsFilter;
-<%_ } _%>
 
-import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
-public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+public class SecurityConfiguration extends WebSecurityConfigurerAdapter {<% if (authenticationType == 'session') { %>
 
-    private final AuthenticationManagerBuilder authenticationManagerBuilder;
+    @Inject
+    private JHipsterProperties jHipsterProperties;
 
-    private final UserDetailsService userDetailsService;
-    <%_ if (authenticationType == 'session') { _%>
+    @Inject
+    private AjaxAuthenticationSuccessHandler ajaxAuthenticationSuccessHandler;
 
-    private final JHipsterProperties jHipsterProperties;
+    @Inject
+    private AjaxAuthenticationFailureHandler ajaxAuthenticationFailureHandler;
 
-    private final RememberMeServices rememberMeServices;
-    <%_ } _%>
-    <%_ if (authenticationType == 'jwt') { _%>
+    @Inject
+    private AjaxLogoutSuccessHandler ajaxLogoutSuccessHandler;<% } if (authenticationType == 'session' || authenticationType == 'jwt') { %>
 
-    private final TokenProvider tokenProvider;
-    <%_ } _%>
-    <%_ if (clusteredHttpSession == 'hazelcast') { _%>
+    @Inject
+    private Http401UnauthorizedEntryPoint authenticationEntryPoint;<% } %>
 
-    private final SessionRegistry sessionRegistry;
-    <%_ } _%>
-    <%_ if (authenticationType !== 'oauth2') { _%>
+    @Inject
+    private UserDetailsService userDetailsService;<% if (authenticationType == 'session') { %>
 
-    private final CorsFilter corsFilter;
-    <%_ } _%>
+    @Inject
+    private RememberMeServices rememberMeServices;<% } %><% if (clusteredHttpSession == 'hazelcast') { %>
 
-    public SecurityConfiguration(AuthenticationManagerBuilder authenticationManagerBuilder, UserDetailsService userDetailsService<% if (authenticationType === 'session') { %>,
-        JHipsterProperties jHipsterProperties, RememberMeServices rememberMeServices<% } if (authenticationType === 'jwt') { %>,
-            TokenProvider tokenProvider<% } %><% if (clusteredHttpSession === 'hazelcast') { %>, SessionRegistry sessionRegistry<% } if (authenticationType !== 'oauth2') { %>,
-        CorsFilter corsFilter<% } %>) {
+    @Inject
+    private SessionRegistry sessionRegistry;<% } %><% if (authenticationType == 'jwt') { %>
 
-        this.authenticationManagerBuilder = authenticationManagerBuilder;
-        this.userDetailsService = userDetailsService;
-        <%_ if (authenticationType == 'session') { _%>
-        this.jHipsterProperties = jHipsterProperties;
-        this.rememberMeServices = rememberMeServices;
-        <%_ } _%>
-        <%_ if (authenticationType == 'jwt') { _%>
-        this.tokenProvider = tokenProvider;
-        <%_ } _%>
-        <%_ if (clusteredHttpSession == 'hazelcast') { _%>
-        this.sessionRegistry = sessionRegistry;
-        <%_ } _%>
-        <%_ if (authenticationType !== 'oauth2') { _%>
-        this.corsFilter = corsFilter;
-        <%_ } _%>
+    @Inject
+    private TokenProvider tokenProvider;<% } %>
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
-    @PostConstruct
-    public void init() {
+    @Inject
+    public void configureGlobal(AuthenticationManagerBuilder auth) {
         try {
-            authenticationManagerBuilder
+            auth
                 .userDetailsService(userDetailsService)
                     .passwordEncoder(passwordEncoder());
         } catch (Exception e) {
             throw new BeanInitializationException("Security configuration failed", e);
         }
-    }
-    <%_ if (authenticationType == 'session') { _%>
-
-    @Bean
-    public AjaxAuthenticationSuccessHandler ajaxAuthenticationSuccessHandler() {
-        return new AjaxAuthenticationSuccessHandler();
-    }
-
-    @Bean
-    public AjaxAuthenticationFailureHandler ajaxAuthenticationFailureHandler() {
-        return new AjaxAuthenticationFailureHandler();
-    }
-    <%_ } _%>
-    <%_ if (authenticationType == 'session' || authenticationType == 'oauth2') { _%>
-
-    @Bean
-    public AjaxLogoutSuccessHandler ajaxLogoutSuccessHandler() {
-        return new AjaxLogoutSuccessHandler();
-    }
-    <%_ } _%>
-
-    @Bean
-    public Http401UnauthorizedEntryPoint http401UnauthorizedEntryPoint() {
-        return new Http401UnauthorizedEntryPoint();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 
     @Override
@@ -152,17 +105,13 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             .sessionManagement()
             .maximumSessions(32) // maximum number of concurrent sessions for one user
             .sessionRegistry(sessionRegistry)
-            .and().and()<% } %>
-            <%_ if (authenticationType == 'session') { _%>
+            .and().and()<% } %><% if (authenticationType == 'session') { %>
             .csrf()
-            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-        .and()
-            <%_ } _%>
-            <%_ if (authenticationType !== 'oauth2') { _%>
-            .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
-            <%_ } _%>
+            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())<% if (websocket == 'spring-websocket' && authenticationType != 'session') { %>
+            .ignoringAntMatchers("/websocket/**")<% } %>
+        .and()<% } %>
             .exceptionHandling()
-            .authenticationEntryPoint(http401UnauthorizedEntryPoint())<% if (authenticationType == 'session') { %>
+            .authenticationEntryPoint(authenticationEntryPoint)<% if (authenticationType == 'session') { %>
         .and()
             .rememberMe()
             .rememberMeServices(rememberMeServices)
@@ -171,15 +120,15 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         .and()
             .formLogin()
             .loginProcessingUrl("/api/authentication")
-            .successHandler(ajaxAuthenticationSuccessHandler())
-            .failureHandler(ajaxAuthenticationFailureHandler())
+            .successHandler(ajaxAuthenticationSuccessHandler)
+            .failureHandler(ajaxAuthenticationFailureHandler)
             .usernameParameter("j_username")
             .passwordParameter("j_password")
             .permitAll()
         .and()
             .logout()
             .logoutUrl("/api/logout")
-            .logoutSuccessHandler(ajaxLogoutSuccessHandler())<% if (clusteredHttpSession == 'hazelcast') { %>
+            .logoutSuccessHandler(ajaxLogoutSuccessHandler)<% if (clusteredHttpSession == 'hazelcast') { %>
             .deleteCookies("hazelcast.sessionId")<% } %>
             .permitAll()<% } %>
         .and()<% if (authenticationType == 'jwt') { %>
@@ -202,7 +151,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             .antMatchers("/api/**").authenticated()<% if (websocket == 'spring-websocket') { %>
             .antMatchers("/websocket/tracker").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/websocket/**").permitAll()<% } %>
+            <%_ if (serviceDiscoveryType == 'consul') { _%>
             .antMatchers("/management/health").permitAll()
+            <%_ } _%>
             .antMatchers("/management/**").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/v2/api-docs/**").permitAll()
             .antMatchers("/swagger-resources/configuration/ui").permitAll()

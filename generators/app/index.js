@@ -6,8 +6,7 @@ var util = require('util'),
     cleanup = require('../cleanup'),
     prompts = require('./prompts'),
     packagejs = require('../../package.json'),
-    exec = require('child_process').exec,
-    semver = require('semver');
+    exec = require('child_process').exec;
 
 var JhipsterGenerator = generators.Base.extend({});
 
@@ -56,11 +55,11 @@ module.exports = JhipsterGenerator.extend({
             defaults: false
         });
 
-        // This adds support for a `--skip-checks` flag
-        this.option('skip-checks', {
+        // This adds support for a `--[no-]check-install` flag
+        this.option('check-install', {
             desc: 'Check the status of the required tools',
             type: Boolean,
-            defaults: false
+            defaults: true
         });
 
         // This adds support for a `--jhi-prefix` flag
@@ -70,9 +69,9 @@ module.exports = JhipsterGenerator.extend({
             defaults: 'jhi'
         });
 
-        // This adds support for a `--npm` flag
-        this.option('npm', {
-            desc: 'Use npm instead of yarn',
+        // This adds support for a `--yarn` flag
+        this.option('yarn', {
+            desc: 'Use yarn instead of npm install',
             type: Boolean,
             defaults: false
         });
@@ -84,8 +83,8 @@ module.exports = JhipsterGenerator.extend({
         this.skipUserManagement = this.configOptions.skipUserManagement = this.options['skip-user-management'] || this.config.get('skipUserManagement');
         this.jhiPrefix = this.configOptions.jhiPrefix || this.config.get('jhiPrefix') || this.options['jhi-prefix'];
         this.withEntities = this.options['with-entities'];
-        this.skipChecks = this.options['skip-checks'];
-        this.yarnInstall = this.configOptions.yarnInstall = !this.options['npm'];
+        this.checkInstall = this.options['check-install'];
+        this.yarnInstall = this.configOptions.yarnInstall = this.options['yarn'] || this.config.get('yarn');
     },
 
     initializing: {
@@ -94,7 +93,7 @@ module.exports = JhipsterGenerator.extend({
         },
 
         checkJava: function () {
-            if (this.skipChecks || this.skipServer) return;
+            if (!this.checkInstall || this.skipServer) return;
             var done = this.async();
             exec('java -version', function (err, stdout, stderr) {
                 if (err) {
@@ -109,25 +108,8 @@ module.exports = JhipsterGenerator.extend({
             }.bind(this));
         },
 
-        checkNode: function () {
-            if (this.skipChecks || this.skipServer) return;
-            var done = this.async();
-            exec('node -v', function (err, stdout, stderr) {
-                if (err) {
-                    this.warning('NodeJS is not found on your system.');
-                } else {
-                    var nodeVersion = semver.clean(stdout);
-                    var nodeFromPackageJson = packagejs.engines.node;
-                    if (!semver.satisfies(nodeVersion, nodeFromPackageJson)) {
-                        this.warning('Your NodeJS version is too old (' + nodeVersion + '). You should use at least NodeJS ' + chalk.bold(nodeFromPackageJson));
-                    }
-                }
-                done();
-            }.bind(this));
-        },
-
         checkGit: function () {
-            if (this.skipChecks || this.skipClient) return;
+            if (!this.checkInstall || this.skipClient) return;
             var done = this.async();
             this.isGitInstalled(function (code) {
                 this.gitInstalled = code === 0;
@@ -149,8 +131,34 @@ module.exports = JhipsterGenerator.extend({
             }.bind(this));
         },
 
+        checkBower: function () {
+            if (!this.checkInstall || this.skipClient) return;
+            var done = this.async();
+            exec('bower --version', function (err) {
+                if (err) {
+                    this.warning('bower is not found on your computer.\n',
+                        ' Install bower using npm command: ' + chalk.yellow('npm install -g bower')
+                    );
+                }
+                done();
+            }.bind(this));
+        },
+
+        checkGulp: function () {
+            if (!this.checkInstall || this.skipClient) return;
+            var done = this.async();
+            exec('gulp --version', function (err) {
+                if (err) {
+                    this.warning('gulp is not found on your computer.\n',
+                        ' Install gulp using npm command: ' + chalk.yellow('npm install -g gulp-cli')
+                    );
+                }
+                done();
+            }.bind(this));
+        },
+
         checkYarn: function () {
-            if (this.skipChecks || !this.yarnInstall) return;
+            if (!this.checkInstall || this.skipClient || !this.yarnInstall) return;
             var done = this.async();
             exec('yarn --version', function (err) {
                 if (err) {
@@ -176,11 +184,7 @@ module.exports = JhipsterGenerator.extend({
                 this.applicationType = 'monolith';
             }
             this.baseName = this.config.get('baseName');
-            this.jhipsterVersion = packagejs.version;
-            if (this.jhipsterVersion === undefined) {
-                this.jhipsterVersion = this.config.get('jhipsterVersion');
-            }
-            this.otherModules = this.config.get('otherModules');
+            this.jhipsterVersion = this.config.get('jhipsterVersion');
             this.testFrameworks = this.config.get('testFrameworks');
             this.enableTranslation = this.config.get('enableTranslation');
             this.nativeLanguage = this.config.get('nativeLanguage');
@@ -188,26 +192,17 @@ module.exports = JhipsterGenerator.extend({
             var configFound = this.baseName !== undefined && this.applicationType !== undefined;
             if (configFound) {
                 this.existingProject = true;
-                // If translation is not defined, it is enabled by default
-                if (this.enableTranslation === undefined) {
-                    this.enableTranslation = true;
-                }
-            }
-            this.clientPackageManager = this.config.get('clientPackageManager');
-            if (!this.clientPackageManager) {
-                if (this.yarnInstall) {
-                    this.clientPackageManager = 'yarn';
-                } else {
-                    this.clientPackageManager = 'npm';
-                }
             }
         }
     },
 
     prompting: {
         askForInsightOptIn: prompts.askForInsightOptIn,
+
         askForApplicationType: prompts.askForApplicationType,
+
         askForModuleName: prompts.askForModuleName,
+
         askForMoreModules: prompts.askForMoreModules,
     },
 
@@ -217,7 +212,6 @@ module.exports = JhipsterGenerator.extend({
             this.configOptions.baseName = this.baseName;
             this.configOptions.logo = false;
             this.configOptions.otherModules = this.otherModules;
-            this.configOptions.lastQuestion = this.currentQuestion;
             this.generatorType = 'app';
             if (this.applicationType === 'microservice') {
                 this.skipClient = true;
@@ -239,7 +233,6 @@ module.exports = JhipsterGenerator.extend({
                 this.generatorType = 'client';
                 // defaults to use when skipping server
             }
-            this.configOptions.clientPackageManager = this.clientPackageManager;
         },
 
         composeServer: function () {
@@ -268,6 +261,7 @@ module.exports = JhipsterGenerator.extend({
             }, {
                 local: require.resolve('../client')
             });
+
         },
 
         askFori18n: prompts.askFori18n
@@ -284,7 +278,6 @@ module.exports = JhipsterGenerator.extend({
             this.configOptions.enableTranslation = this.enableTranslation;
             this.configOptions.nativeLanguage = this.nativeLanguage;
             this.configOptions.languages = this.languages;
-            this.configOptions.clientPackageManager = this.clientPackageManager;
         },
 
         insight: function () {
@@ -293,7 +286,6 @@ module.exports = JhipsterGenerator.extend({
             insight.track('app/applicationType', this.applicationType);
             insight.track('app/testFrameworks', this.testFrameworks);
             insight.track('app/otherModules', this.otherModules);
-            insight.track('app/clientPackageManager', this.clientPackageManager);
         },
 
         composeLanguages: function () {
@@ -316,7 +308,7 @@ module.exports = JhipsterGenerator.extend({
                 this.config.set('nativeLanguage', this.nativeLanguage);
                 this.config.set('languages', this.languages);
             }
-            this.config.set('clientPackageManager', this.clientPackageManager);
+            this.yarnInstall && this.config.set('yarn', true);
         }
     },
 
@@ -344,26 +336,6 @@ module.exports = JhipsterGenerator.extend({
     },
 
     end: {
-        localInstall: function() {
-            if (this.skipClient) {
-                if (this.otherModules === undefined) {
-                    this.otherModules = [];
-                }
-                // Generate a package.json file containing the current version of the generator as dependency
-                this.template('_skipClientApp.package.json', 'package.json', this, {});
-
-                if (!this.options['skip-install']) {
-                    if (this.clientPackageManager === 'yarn') {
-                        this.log(chalk.bold(`\nInstalling generator-jhipster@${this.jhipsterVersion} locally using yarn`));
-                        this.spawnCommand('yarn', ['install']);
-                    } else if (this.clientPackageManager === 'npm') {
-                        this.log(chalk.bold(`\nInstalling generator-jhipster@${this.jhipsterVersion} locally using npm`));
-                        this.npmInstall();
-                    }
-                }
-            }
-        },
-
         afterRunHook: function () {
             try {
                 var modules = this.getModuleHooks();

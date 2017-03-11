@@ -20,7 +20,7 @@
             },
             "admin": {
                 "main": "Administrácia",
-                <%_ if (applicationType === 'gateway') { _%>
+                <%_ if (applicationType == 'gateway') { _%>
                 "gateway": "Brána",
                 <%_ } _%>
                 "userManagement": "Správa používateľov",
@@ -48,20 +48,8 @@
         },
         "messages": {
             "info": {
-                <%_ if (clientFramework === 'angular1') { _%>
                 "authenticated": "Ak sa chcete <a class=\"alert-link\" href=\"\" ng-click=\"vm.login()\">prihlásiť</a>, môžete vyskúšať predvolené účty:<br/>- Administrátor (meno=\"admin\" a heslo=\"admin\") <br/>- Používateľ (meno=\"user\" a heslo=\"user\").",
                 "register": "Ešte nemáte účet? <a class=\"alert-link\" href=\"\" ng-click=\"vm.register()\">Zaregistrujte si nový účet.</a>"
-                <%_ } else if (clientFramework === 'angular2') { _%>
-                "authenticated": {
-                    "prefix": "Ak sa chcete ",
-                    "link": "prihlásiť",
-                    "suffix": ", môžete vyskúšať predvolené účty:<br/>- Administrátor (meno=\"admin\" a heslo=\"admin\") <br/>- Používateľ (meno=\"user\" a heslo=\"user\")."
-                },
-                "register": {
-                    "noaccount": "Ešte nemáte účet?",
-                    "link": "Zaregistrujte si nový účet."
-                }
-                <%_ } _%>
             },
             "error": {
                 "dontmatch": "Nové heslo a potvrdenie nového hesla sa nezhodujú!"
@@ -126,7 +114,6 @@
         }
     },
     "error": {
-        "internalServerError": "Internal server error",
         "server.not.reachable": "Server je nedostupný",
         "url.not.found": "Not found",
         "NotNull": "Pole {{ fieldName }} nemôže byť prázdne!",

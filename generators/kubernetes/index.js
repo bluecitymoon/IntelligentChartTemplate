@@ -34,24 +34,24 @@ module.exports = KubernetesGenerator.extend({
     constructor: function () {
         generators.Base.apply(this, arguments);
 
-        // This adds support for a `--skip-checks` flag
-        this.option('skip-checks', {
+        // This adds support for a `--[no-]check-install` flag
+        this.option('check-install', {
             desc: 'Check the status of the required tools',
             type: Boolean,
-            defaults: false
+            defaults: true
         });
 
-        this.skipChecks = this.options['skip-checks'];
+        this.checkInstall = this.options['check-install'];
     },
 
     initializing: {
         sayHello: function() {
-            this.log(chalk.white(chalk.bold('⎈') + ' [BETA] Welcome to the JHipster Kubernetes Generator ' + chalk.bold('⎈')));
+            this.log(chalk.white(chalk.bold('[BETA]') + ' Welcome to the JHipster Kubernetes Generator '));
             this.log(chalk.white('Files will be generated in folder: ' + chalk.yellow(this.destinationRoot())));
         },
 
         checkDocker: function() {
-            if (this.skipChecks) return;
+            if (!this.checkInstall) return;
             var done = this.async();
 
             shelljs.exec('docker -v', {silent:true},function(code, stdout, stderr) {
@@ -73,7 +73,7 @@ module.exports = KubernetesGenerator.extend({
         },
 
         checkKubernetes: function() {
-            if (this.skipChecks) return;
+            if (!this.checkInstall) return;
             var done = this.async();
 
             shelljs.exec('kubectl version', {silent:true}, function(code, stdout, stderr) {
@@ -89,7 +89,6 @@ module.exports = KubernetesGenerator.extend({
             this.defaultAppsFolders = this.config.get('appsFolders');
             this.directoryPath = this.config.get('directoryPath');
             this.clusteredDbApps = this.config.get('clusteredDbApps');
-            this.serviceDiscoveryType = this.config.get('serviceDiscoveryType');
             this.adminPassword = this.config.get('adminPassword');
             this.jwtSecretKey = this.config.get('jwtSecretKey');
             this.dockerRepositoryName = this.config.get('dockerRepositoryName');
@@ -97,12 +96,9 @@ module.exports = KubernetesGenerator.extend({
             this.kubernetesNamespace = this.config.get('kubernetesNamespace');
 
             this.DOCKER_JHIPSTER_REGISTRY = constants.DOCKER_JHIPSTER_REGISTRY;
-            this.DOCKER_CONSUL = constants.DOCKER_CONSUL;
-            this.DOCKER_CONSUL_CONFIG_LOADER = constants.DOCKER_CONSUL_CONFIG_LOADER;
             this.DOCKER_MYSQL = constants.DOCKER_MYSQL;
             this.DOCKER_MARIADB = constants.DOCKER_MARIADB;
             this.DOCKER_POSTGRESQL = constants.DOCKER_POSTGRESQL;
-            this.DOCKER_ORACLE = constants.DOCKER_ORACLE;
             this.DOCKER_MONGODB = constants.DOCKER_MONGODB;
             this.DOCKER_ELASTICSEARCH = constants.DOCKER_ELASTICSEARCH;
             this.DOCKER_KAFKA = constants.DOCKER_KAFKA;
@@ -213,7 +209,6 @@ module.exports = KubernetesGenerator.extend({
             this.config.set('appsFolders', this.appsFolders);
             this.config.set('directoryPath', this.directoryPath);
             this.config.set('clusteredDbApps', this.clusteredDbApps);
-            this.config.set('serviceDiscoveryType', this.serviceDiscoveryType);
             this.config.set('jwtSecretKey', this.jwtSecretKey);
             this.config.set('dockerRepositoryName', this.dockerRepositoryName);
             this.config.set('dockerPushCommand', this.dockerPushCommand);
@@ -242,7 +237,7 @@ module.exports = KubernetesGenerator.extend({
         }
 
         this.log('\nYou can deploy all your apps by running: ');
-        if (this.gatewayNb >= 1 || this.microserviceNb >= 1) {
+        if (this.gatewayNb >= 1) {
             this.log('  ' + chalk.cyan('kubectl apply -f registry'));
         }
         for (i = 0; i < this.appsFolders.length; i++) {

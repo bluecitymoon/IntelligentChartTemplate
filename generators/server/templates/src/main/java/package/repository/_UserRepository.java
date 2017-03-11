@@ -5,11 +5,11 @@ import com.datastax.driver.mapping.Mapper;
 import com.datastax.driver.mapping.MappingManager;<% } %>
 import <%=packageName%>.domain.User;
 
-import java.time.ZonedDateTime;<% if (databaseType == 'sql' || databaseType == 'mongodb') { %>
+import java.time.ZonedDateTime;<% if (databaseType == 'sql') { %>
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;<% } %><% if (databaseType == 'sql') { %>
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;<% } %><% if (databaseType == 'mongodb') { %>
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;<% } %><% if (databaseType == 'mongodb') { %>
 import org.springframework.data.mongodb.repository.MongoRepository;<% } %>
 
 import java.util.List;
@@ -17,6 +17,8 @@ import java.util.Optional;<% if (databaseType == 'cassandra') { %>
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;<%}%>
@@ -41,19 +43,16 @@ public interface UserRepository extends <% if (databaseType == 'sql') { %>JpaRep
     Optional<User> findOneByLogin(String login);
     <%_ if (databaseType == 'sql') { _%>
 
-    @EntityGraph(attributePaths = "authorities")
-    User findOneWithAuthoritiesById(<%= pkType %> id);
-
-    @EntityGraph(attributePaths = "authorities")
-    Optional<User> findOneWithAuthoritiesByLogin(String login);
+    @Query(value = "select distinct user from User user left join fetch user.authorities",
+        countQuery = "select count(user) from User user")
+    Page<User> findAllWithAuthorities(Pageable pageable);
     <%_ } _%>
-
-    Page<User> findAllByLoginNot(Pageable pageable, String login);
 }<% } else if (databaseType == 'cassandra') { %>
 @Repository
 public class UserRepository {
 
-    private final Session session;
+    @Inject
+    private Session session;
 
     private Mapper<User> mapper;
 
@@ -83,8 +82,8 @@ public class UserRepository {
 
     private PreparedStatement deleteByEmailStmt;
 
-    public UserRepository(Session session) {
-        this.session = session;
+    @PostConstruct
+    public void init() {
         mapper = new MappingManager(session).mapper(User.class);
 
         findAllStmt = session.prepare("SELECT * FROM user");

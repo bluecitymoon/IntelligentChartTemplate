@@ -1,14 +1,13 @@
 package <%=packageName%>.service;
 
+import <%=packageName%>.config.JHipsterProperties;
 import <%=packageName%>.domain.User;
-
-import io.github.jhipster.config.JHipsterProperties;
 
 import org.apache.commons.lang3.CharEncoding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -18,6 +17,7 @@ import org.thymeleaf.spring4.SpringTemplateEngine;
 import org.apache.commons.lang3.StringUtils;
 <%_ } _%>
 
+import javax.inject.Inject;
 import javax.mail.internet.MimeMessage;
 import java.util.Locale;
 
@@ -36,22 +36,17 @@ public class MailService {
 
     private static final String BASE_URL = "baseUrl";
 
-    private final JHipsterProperties jHipsterProperties;
+    @Inject
+    private JHipsterProperties jHipsterProperties;
 
-    private final JavaMailSender javaMailSender;
+    @Inject
+    private JavaMailSenderImpl javaMailSender;
 
-    private final MessageSource messageSource;
+    @Inject
+    private MessageSource messageSource;
 
-    private final SpringTemplateEngine templateEngine;
-
-    public MailService(JHipsterProperties jHipsterProperties, JavaMailSender javaMailSender,
-            MessageSource messageSource, SpringTemplateEngine templateEngine) {
-
-        this.jHipsterProperties = jHipsterProperties;
-        this.javaMailSender = javaMailSender;
-        this.messageSource = messageSource;
-        this.templateEngine = templateEngine;
-    }
+    @Inject
+    private SpringTemplateEngine templateEngine;
 
     @Async
     public void sendEmail(String to, String subject, String content, boolean isMultipart, boolean isHtml) {

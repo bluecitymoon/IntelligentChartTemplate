@@ -11,7 +11,7 @@
         $stateProvider
         .state('<%= entityStateName %>', {
             parent: 'entity',
-            url: '/<%= entityUrl %><% if (pagination == 'pagination' || pagination == 'pager') { %>?page&sort&search<% } %>',
+            url: '/<%= entityUrl %><% if (pagination == 'pagination' || pagination == 'pager') { %>?page&sort&search<% } %>&person_id={id}',
             data: {
                 authorities: ['ROLE_USER'],
                 pageTitle: <% if (enableTranslation){ %>'<%= angularAppName %>.<%= entityTranslationKey %>.home.title'<% }else{ %>'<%= entityClassPlural %>'<% } %>

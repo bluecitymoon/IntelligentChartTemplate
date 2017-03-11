@@ -20,7 +20,7 @@
             },
             "admin": {
                 "main": "Adminisztráció",
-                <%_ if (applicationType === 'gateway') { _%>
+                <%_ if (applicationType == 'gateway') { _%>
                 "gateway": "Gateway",
                 <%_ } _%>
                 "userManagement": "Felhasználókezelés",
@@ -48,20 +48,8 @@
         },
         "messages": {
             "info": {
-                <%_ if (clientFramework === 'angular1') { _%>
                 "authenticated": "Ha be akar <a class=\"alert-link\" href=\"\" ng-click=\"vm.login()\">lépni</a>, kipróbálás céljából használható felhasználók:<br/>- Adminisztrátor (azonosító=\"admin\" és a jelszó=\"admin\") <br/>- Felhasználó (azonosító=\"user\" és jelszó=\"user\").",
                 "register": "Nincs még hozzáférése? <a class=\"alert-link\" href=\"\" ng-click=\"vm.register()\">Regisztráljon</a>"
-                <%_ } else if (clientFramework === 'angular2') { _%>
-                "authenticated": {
-                    "prefix": "Ha be akar ",
-                    "link": "lépni",
-                    "suffix": ", kipróbálás céljából használható felhasználók:<br/>- Adminisztrátor (azonosító=\"admin\" és a jelszó=\"admin\") <br/>- Felhasználó (azonosító=\"user\" és jelszó=\"user\")."
-                },
-                "register": {
-                    "noaccount": "Nincs még hozzáférése?",
-                    "link": "Regisztráljon"
-                }
-                <%_ } _%>
             },
             "error": {
                 "dontmatch" : "A jelszó és a jelszó megerősítés nem egyezik meg!"
@@ -126,7 +114,6 @@
         }
     },
     "error": {
-        "internalServerError": "Internal server error",
         "server.not.reachable": "A szerver nem elérhető",
         "url.not.found": "Not found",
         "NotNull": "Az {{fieldName}} mező nem lehet üres!",

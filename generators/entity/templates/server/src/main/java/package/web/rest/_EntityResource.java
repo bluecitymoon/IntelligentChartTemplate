@@ -1,6 +1,7 @@
 package <%=packageName%>.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
+import <%=packageName%>.repository.<%= entityClass %>Repository;
 <%_ if (dto != 'mapstruct' || service == 'no') { _%>
 import <%=packageName%>.domain.<%= entityClass %>;
 <%_ } _%>

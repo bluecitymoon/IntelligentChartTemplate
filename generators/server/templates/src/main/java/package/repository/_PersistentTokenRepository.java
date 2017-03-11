@@ -13,6 +13,8 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 <% } %><% if (databaseType == 'cassandra') { %>
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 import java.util.ArrayList;<% } %>
 import java.util.List;
 
@@ -33,7 +35,8 @@ public interface PersistentTokenRepository extends <% if (databaseType == 'sql')
 @Repository
 public class PersistentTokenRepository {
 
-    private final Session session;
+    @Inject
+    private Session session;
 
     Mapper<PersistentToken> mapper;
 
@@ -45,8 +48,8 @@ public class PersistentTokenRepository {
 
     private PreparedStatement deletePersistentTokenSeriesByUserIdStmt;
 
-    public PersistentTokenRepository(Session session) {
-        this.session = session;
+    @PostConstruct
+    public void init() {
         mapper = new MappingManager(session).mapper(PersistentToken.class);
 
         findPersistentTokenSeriesByUserIdStmt = session.prepare(

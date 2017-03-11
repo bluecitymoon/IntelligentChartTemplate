@@ -1,10 +1,8 @@
-apply plugin: 'org.springframework.boot'
-<%_ if(!skipClient) { _%>
+import org.apache.tools.ant.taskdefs.condition.Os
+apply plugin: 'org.springframework.boot'<% if(!skipClient) { %>
 apply plugin: 'com.moowork.node'
-    <%_ if (clientFramework === 'angular1') { _%>
 apply plugin: 'com.moowork.gulp'
-    <%_ } _%>
-<%_ } _%>
+<% } %>
 
 ext {
     logbackLoglevel = "INFO"
@@ -26,22 +24,14 @@ if (project.hasProperty('swagger')) {
 bootRun {
     args = []
 }
-
-<%_ if (!skipClient) { _%>
-    <%_ if (clientFramework === 'angular1') { _%>
+<% if (!skipClient) { %>
 task gulpBuildWithOpts(type: GulpTask) {
     args = ["build", "--no-notification"]
 }
-    <%_ } else { _%>
-task webpack(type: <%= clientPackageManager.charAt(0).toUpperCase() + clientPackageManager.slice(1) %>Task, dependsOn: '<%= clientPackageManager %>_install') {
-    args = ["run", "webpack:prod"]
-}
-    <%_ } _%>
 
 war {
     webAppDirName = '<%= CLIENT_DIST_DIR %>'
-}
-<%_ } _%>
+}<% } %>
 
 processResources {
     filesMatching('**/logback-spring.xml') {
@@ -58,29 +48,16 @@ processResources {
         filter {
             it.replace('#spring.profiles.active#', profiles)
         }
-        filter {
-            it.replace('#project.version#', version)
-        }
     }
 }
 
-<%_ if (!skipClient) { _%>
-    <%_ if (clientFramework === 'angular1') { _%>
-        <%_ if (clientPackageManager === 'yarn') { _%>
-// Workaround for https://github.com/srs/gradle-node-plugin/issues/134 doesn't work with yarn
-if (!project.hasProperty('nodeInstall')) {
-    gulpBuildWithOpts.dependsOn yarn_install
-} else {
-    gulpBuildWithOpts.dependsOn npm_install
-}
-        <%_ } else if (clientPackageManager === 'npm') { _%>
-gulpBuildWithOpts.dependsOn npm_install
-        <%_ } _%>
-gulpBuildWithOpts.dependsOn bower
+<% if (!skipClient) { %>
+<%_ if (yarnInstall) { _%>
+gulpBuildWithOpts.dependsOn 'yarn_install'
+<%_ } else { _%>
+gulpBuildWithOpts.dependsOn 'npmInstall'
+<%_ } _%>
+gulpBuildWithOpts.dependsOn 'bower'
 processResources.dependsOn gulpBuildWithOpts
 test.dependsOn gulp_test
-bootRun.dependsOn gulp_test
-    <%_ } else { _%>
-processResources.dependsOn webpack
-    <%_ } _%>
-<%_ } _%>
+bootRun.dependsOn gulp_test<% } %>

@@ -5,12 +5,9 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 <%_ } _%>
-<%_ if (hibernateCache != 'no') { _%>
+<%_ if (databaseType == 'sql') { _%>
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-<%_ } _%>
-<%_ if (databaseType == 'sql') { _%>
-
 import javax.persistence.*;
 <%_ } _%>
 import javax.validation.constraints.NotNull;
@@ -24,20 +21,15 @@ import java.util.Objects;
  * A Social user.
  */<% if (databaseType == 'sql') { %>
 @Entity
-@Table(name = "jhi_social_user_connection")<% if (hibernateCache != 'no') { %>
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)<% } %><% } %><% if (databaseType == 'mongodb') { %>
+@Table(name = "jhi_social_user_connection")
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)<% } %><% if (databaseType == 'mongodb') { %>
 @Document(collection = "jhi_social_user_connection")<% } %>
 public class SocialUserConnection implements Serializable {
 
     private static final long serialVersionUID = 1L;
 <% if (databaseType == 'sql') { %>
     @Id
-    <%_ if (prodDatabaseType == 'mysql' || prodDatabaseType == 'mariadb') { _%>
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    <%_ }  else { _%>
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
-    <%_ } _%>
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;<% } %><% if (databaseType == 'mongodb') { %>
     @Id
     private String id;<% } %>

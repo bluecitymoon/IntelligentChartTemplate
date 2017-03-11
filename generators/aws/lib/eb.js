@@ -1,13 +1,25 @@
 'use strict';
+
+var chalk = require('chalk');
+
 var aws;
-var uuidV4;
+var uuid;
+
 
 var Eb = module.exports = function Eb(Aws, generator) {
     aws = Aws;
     try {
-        uuidV4 = require('uuid/v4');
+        uuid = require('node-uuid');
     } catch (e) {
-        generator.error('Something went wrong while running jhipster:aws:\n' + e);
+        generator.env.error(chalk.red(
+            'You don\'t have the AWS SDK installed. Please install it in the JHipster generator directory.\n\n') +
+            chalk.yellow('WINDOWS\n') +
+            chalk.green('cd %USERPROFILE%\\AppData\\Roaming\\npm\\node_modules\\generator-jhipster\n' +
+            'npm install aws-sdk progress node-uuid\n\n') +
+            chalk.yellow('LINUX / MAC\n') +
+            chalk.green('cd /usr/local/lib/node_modules/generator-jhipster\n' +
+            'npm install aws-sdk progress node-uuid')
+        );
     }
 };
 
@@ -15,7 +27,7 @@ Eb.prototype.createApplication = function createApplication(params, callback) {
     var applicationName = params.applicationName,
         bucketName = params.bucketName,
         warKey = params.warKey,
-        versionLabel = this.warKey + '-' + uuidV4(),
+        versionLabel = this.warKey + '-' + uuid.v4(),
         environmentName = params.environmentName,
         dbUrl = params.dbUrl,
         dbUsername = params.dbUsername,

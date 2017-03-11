@@ -1,5 +1,6 @@
 <% var keyPrefix = angularAppName + '.' + entityTranslationKey; %>
-<div>
+<div class="panel">
+    <div class="panel-body">
     <h2><span data-translate="<%= keyPrefix %>.detail.title"><%= entityClassHumanized %></span> {{vm.<%= entityInstance %>.id}}</h2>
     <hr>
     <jhi-alert-error></jhi-alert-error>
@@ -89,4 +90,5 @@
         <span class="glyphicon glyphicon-pencil"></span>
         <span class="hidden-sm-down" data-translate="entity.action.edit"> Edit</span>
     </button>
+</div>
 </div>

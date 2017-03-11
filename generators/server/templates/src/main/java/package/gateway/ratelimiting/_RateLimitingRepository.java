@@ -1,6 +1,8 @@
 package <%=packageName%>.gateway.ratelimiting;
 
 import java.util.Date;
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 
 import com.datastax.driver.core.*;
 
@@ -9,20 +11,21 @@ import com.datastax.driver.core.*;
  */
 public class RateLimitingRepository {
 
-    private final Session session;
+    @Inject
+    private Session session;
 
     private PreparedStatement rateLimitingIncrement;
 
     private PreparedStatement rateLimitingCount;
 
-    public RateLimitingRepository(Session session) {
-        this.session = session;
-        this.rateLimitingIncrement = session.prepare(
+    @PostConstruct
+    public void init() {
+        rateLimitingIncrement = session.prepare(
             "UPDATE gateway_ratelimiting\n" +
                 "  SET value = value + 1\n" +
                 "  WHERE id = :id AND time_unit = :time_unit AND time = :time");
 
-        this.rateLimitingCount = session.prepare(
+        rateLimitingCount = session.prepare(
             "SELECT value\n" +
                 "  FROM gateway_ratelimiting\n" +
                 "  WHERE id = :id AND time_unit = :time_unit AND time = :time"

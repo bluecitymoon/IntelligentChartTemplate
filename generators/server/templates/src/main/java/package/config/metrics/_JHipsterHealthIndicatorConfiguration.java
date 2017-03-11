@@ -4,14 +4,13 @@ import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.inject.Inject;
+
 @Configuration
 public class JHipsterHealthIndicatorConfiguration {
 
-    private final Session session;
-
-    public JHipsterHealthIndicatorConfiguration(Session session) {
-        this.session = session;
-    }
+    @Inject
+    private Session session;
 
     @Bean
     public HealthIndicator cassandraHealthIndicator() {

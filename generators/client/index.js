@@ -1,12 +1,11 @@
 'use strict';
-const util = require('util'),
+var util = require('util'),
     generators = require('yeoman-generator'),
     chalk = require('chalk'),
     _ = require('lodash'),
     scriptBase = require('../generator-base'),
     prompts = require('./prompts'),
-    writeAngularFiles = require('./files-angular').writeFiles,
-    writeAngularJsFiles = require('./files-angularjs').writeFiles,
+    writeFiles = require('./files').writeFiles,
     packagejs = require('../../package.json');
 
 var JhipsterClientGenerator = generators.Base.extend({});
@@ -93,9 +92,9 @@ module.exports = JhipsterClientGenerator.extend({
             defaults: false
         });
 
-        // This adds support for a `--npm` flag
-        this.option('npm', {
-            desc: 'Use npm instead of yarn',
+        // This adds support for a `--yarn` flag
+        this.option('yarn', {
+            desc: 'Use yarn instead of npm install',
             type: Boolean,
             defaults: false
         });
@@ -119,8 +118,7 @@ module.exports = JhipsterClientGenerator.extend({
         this.totalQuestions = this.configOptions.totalQuestions ? this.configOptions.totalQuestions : QUESTIONS;
         this.baseName = this.configOptions.baseName;
         this.logo = this.configOptions.logo;
-        this.yarnInstall = this.configOptions.yarnInstall = !this.options['npm'];
-        this.clientPackageManager = this.configOptions.clientPackageManager;
+        this.yarnInstall = this.configOptions.yarnInstall = this.configOptions.yarnInstall || this.options['yarn'] || this.config.get('yarn');
     },
 
     initializing: {
@@ -140,16 +138,10 @@ module.exports = JhipsterClientGenerator.extend({
             if (!this.applicationType) {
                 this.applicationType = 'monolith';
             }
-            this.clientFramework = this.config.get('clientFramework');
-            if (!this.clientFramework) {
-                /* for backward compatibility */
-                this.clientFramework = 'angular1';
-            }
             this.useSass = this.config.get('useSass');
             this.enableTranslation = this.config.get('enableTranslation'); // this is enabled by default to avoid conflicts for existing applications
             this.nativeLanguage = this.config.get('nativeLanguage');
             this.languages = this.config.get('languages');
-            this.messageBroker = this.config.get('messageBroker');
             this.packagejs = packagejs;
             var baseName = this.config.get('baseName');
             if (baseName) {
@@ -171,27 +163,20 @@ module.exports = JhipsterClientGenerator.extend({
 
                 this.existingProject = true;
             }
-            if (!this.clientPackageManager) {
-                if (this.yarnInstall) {
-                    this.clientPackageManager = 'yarn';
-                } else {
-                    this.clientPackageManager = 'npm';
-                }
-            }
         }
     },
 
     prompting: {
 
         askForModuleName: prompts.askForModuleName,
-        askForClient: prompts.askForClient,
+
         askForClientSideOpts: prompts.askForClientSideOpts,
+
         askFori18n: prompts.askFori18n,
 
         setSharedConfigOptions: function () {
             this.configOptions.lastQuestion = this.currentQuestion;
             this.configOptions.totalQuestions = this.totalQuestions;
-            this.configOptions.clientFramework = this.clientFramework;
             this.configOptions.useSass = this.useSass;
         }
 
@@ -201,7 +186,6 @@ module.exports = JhipsterClientGenerator.extend({
         insight: function () {
             var insight = this.insight();
             insight.trackWithEvent('generator', 'client');
-            insight.track('app/clientFramework', this.clientFramework);
             insight.track('app/useSass', this.useSass);
             insight.track('app/enableTranslation', this.enableTranslation);
             insight.track('app/nativeLanguage', this.nativeLanguage);
@@ -210,9 +194,8 @@ module.exports = JhipsterClientGenerator.extend({
 
         configureGlobal: function () {
             // Application name modified, using each technology's conventions
-            this.camelizedBaseName = _.camelCase(this.baseName);
             this.angularAppName = this.getAngularAppName();
-            this.angular2AppName = this.getAngular2AppName();
+            this.camelizedBaseName = _.camelCase(this.baseName);
             this.capitalizedBaseName = _.upperFirst(this.baseName);
             this.dasherizedBaseName = _.kebabCase(this.baseName);
             this.lowercaseBaseName = this.baseName.toLowerCase();
@@ -223,14 +206,13 @@ module.exports = JhipsterClientGenerator.extend({
         },
 
         saveConfig: function () {
-            this.config.set('clientFramework', this.clientFramework);
             this.config.set('useSass', this.useSass);
             this.config.set('enableTranslation', this.enableTranslation);
             if (this.enableTranslation && !this.configOptions.skipI18nQuestion) {
                 this.config.set('nativeLanguage', this.nativeLanguage);
                 this.config.set('languages', this.languages);
             }
-            this.config.set('clientPackageManager', this.clientPackageManager);
+            this.yarnInstall && this.config.set('yarn', true);
         }
     },
 
@@ -242,9 +224,6 @@ module.exports = JhipsterClientGenerator.extend({
             }
             if (this.configOptions.websocket !== undefined) {
                 this.websocket = this.configOptions.websocket;
-            }
-            if (this.configOptions.clientFramework) {
-                this.clientFramework = this.configOptions.clientFramework;
             }
             if (this.configOptions.databaseType) {
                 this.databaseType = this.configOptions.databaseType;
@@ -273,8 +252,6 @@ module.exports = JhipsterClientGenerator.extend({
             if (this.configOptions.testFrameworks) {
                 this.testFrameworks = this.configOptions.testFrameworks;
             }
-            this.protractorTests = this.testFrameworks.indexOf('protractor') !== -1;
-
             if (this.configOptions.enableTranslation !== undefined) {
                 this.enableTranslation = this.configOptions.enableTranslation;
             }
@@ -305,89 +282,49 @@ module.exports = JhipsterClientGenerator.extend({
         }
     },
 
-    writing: function () {
-        if (this.clientFramework === 'angular1') {
-            return writeAngularJsFiles.call(this);
-        } else {
-            return writeAngularFiles.call(this);
-        }
-    },
+    writing: writeFiles(),
 
     install: function () {
-
-        let logMsg =
-            'To install your dependencies manually, run: ' + chalk.yellow.bold(this.clientPackageManager + ' install');
-
-        if (this.clientFramework === 'angular1') {
-            logMsg =
-                'To install your dependencies manually, run: ' + chalk.yellow.bold(this.clientPackageManager + ' install & bower install');
-        }
-
-        let injectDependenciesAndConstants = () => {
+        var injectDependenciesAndConstants = function () {
             if (this.options['skip-install']) {
-                this.log(logMsg);
+                this.log(
+                    'After running ' + chalk.yellow.bold('npm install & bower install') + ' ...' +
+                    '\n' +
+                    '\nInject your front end dependencies into your source code:' +
+                    '\n ' + chalk.yellow.bold('gulp inject') +
+                    '\n' +
+                    '\nGenerate the Angular constants:' +
+                    '\n ' + chalk.yellow.bold('gulp ngconstant:dev') +
+                    (this.useSass ?
+                    '\n' +
+                    '\nCompile your Sass style sheets:' +
+                    '\n ' + chalk.yellow.bold('gulp sass') : '') +
+                    '\n' +
+                    '\nOr do all of the above:' +
+                    '\n ' + chalk.yellow.bold('gulp install') +
+                    '\n'
+                );
             } else {
-                if (this.clientFramework === 'angular1') {
-                    this.spawnCommand('gulp', ['install']);
-                }
+                this.spawnCommand('gulp', ['install']);
             }
         };
-
-        let installConfig = {
-            bower: false,
-            npm: true,
-            callback: injectDependenciesAndConstants
-        };
-
-        if (this.clientFramework === 'angular1') {
-            installConfig = {
-                callback: injectDependenciesAndConstants
-            };
-        }
-
         if (!this.options['skip-install']) {
-            if (this.clientPackageManager === 'yarn') {
-                var result = this.spawnCommandSync('yarn');
-                if (result.status !== 0) {
-                    this.error('yarn install failed.');
-                }
-                if (this.clientFramework === 'angular1') {
-                    this.spawnCommandSync('bower', ['install']);
-                }
-                injectDependenciesAndConstants();
-
-            } else if (this.clientPackageManager === 'npm') {
-                this.installDependencies(installConfig);
+            if (!this.yarnInstall) {
+                this.installDependencies({
+                    callback: injectDependenciesAndConstants.bind(this)
+                });
+            } else {
+                this.spawnCommandSync('yarn');
+                this.spawnCommandSync('bower', ['install']);
+                injectDependenciesAndConstants.call(this);
             }
         } else {
-            injectDependenciesAndConstants();
+            injectDependenciesAndConstants.call(this);
         }
     },
 
     end: function () {
-        this.log(chalk.green.bold('\nClient application generated successfully.\n'));
-
-        let logMsg =
-            'Start your Webpack development server with:' +
-            '\n ' + chalk.yellow.bold(this.clientPackageManager + ' start') +
-            '\n';
-
-        if (this.clientFramework === 'angular1') {
-            logMsg =
-                'Inject your front end dependencies into your source code:' +
-                '\n ' + chalk.yellow.bold('gulp inject') +
-                '\n' +
-                '\nGenerate the AngularJS constants:' +
-                '\n ' + chalk.yellow.bold('gulp ngconstant:dev') +
-                (this.useSass ?
-                '\n' +
-                '\nCompile your Sass style sheets:' +
-                '\n ' + chalk.yellow.bold('gulp sass') : '') +
-                '\n' +
-                '\nOr do all of the above:' +
-                '\n ' + chalk.yellow.bold('gulp install') +
-                '\n';
-        }
-        this.log(chalk.green(logMsg));
+        this.log(chalk.green.bold('\nClient app generated successfully.\n'));
     }
+
 });

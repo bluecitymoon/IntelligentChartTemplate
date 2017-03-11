@@ -12,6 +12,7 @@
 <%_  } else { _%>
 
     private final <%= entityClass %>Service <%= entityInstance %>Service;
+
 <%_ } _%>
 
     public <%= constructorName %>(<% if (!viaService) { %><%= entityClass %>Repository <%= entityInstance %>Repository<% if (dto == 'mapstruct') { %>, <%= entityClass %>Mapper <%= entityInstance %>Mapper<% } %><% if (searchEngine == 'elasticsearch') { %>, <%= entityClass %>SearchRepository <%= entityInstance %>SearchRepository<% } %><%  } else { %><%= entityClass %>Service <%= entityInstance %>Service<% } %>) {
